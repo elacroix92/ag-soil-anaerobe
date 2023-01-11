@@ -1,0 +1,3501 @@
+---
+title: "ddPCR all data"
+author: "Emily Lacroix"
+date: "11/1/2023"
+output: 
+  github_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Setup
+
+## Load libraries
+
+Still unclear if we need to load all of these libraries 
+```{r}
+library(car)
+library(multcompView)
+library(FSA)
+library(tidyverse)
+library(readxl)
+library(ggpubr)
+library(scales)
+library(rstatix)
+library(rcompanion)
+```
+
+## Functions
+
+```{r}
+tri.to.squ<-function(x)
+{
+  rn <- row.names(x)
+  cn <- colnames(x)
+  an <- unique(c(cn,rn))
+  myval <- x[!is.na(x)]
+  mymat <- 
+    matrix(1, nrow = length(an), ncol = length(an), dimnames = list(an,an))
+  for(ext in 1:length(cn))
+  {
+    for(int in 1:length(rn))
+    {
+      if(is.na(x[row.names(x) == rn[int], colnames(x) == cn[ext]])) next
+      mymat[row.names(mymat) == rn[int], colnames(mymat) == cn[ext]] <- 
+        x[row.names(x) == rn[int], colnames(x) == cn[ext]]
+      mymat[row.names(mymat) == cn[ext], colnames(mymat) == rn[int]] <- 
+        x[row.names(x) == rn[int], colnames(x) == cn[ext]]
+    }
+  }
+  return(mymat)
+}
+
+
+```
+
+## Files
+
+```{r}
+
+grav_data_file <- "/Users/elacroi3/Documents/Research/SHI/Data/DataCompilation/intact_core_grav.csv"
+
+extract_data_file <- "/Users/elacroi3/Documents/Research/SHI/Data/DataCompilation/dna_extraction.csv"
+
+all_data_file <-  "/Users/elacroi3/Documents/Research/SHI/Data/DataCompilation/AllData_03AUG.xlsx"
+
+mcrA_file <- "/Users/elacroi3/Documents/Research/SHI/Data/DataCompilation/mcra_data.xlsx"
+
+sixteenS_file_auto <- "/Users/elacroi3/Documents/Research/SHI/Data/Microbial/ddPCR/16S/EML_16S_SHI_redo_08MAR2022_auto.csv"
+
+sixteenS_file_manual <- "/Users/elacroi3/Documents/Research/SHI/Data/Microbial/ddPCR/16S/EML_16S_SHI_redo_08MAR2022_auto.csv"
+
+glta_file1 <- "/Users/elacroi3/Documents/Research/SHI/Data/Microbial/ddPCR/gltA/glta_SHI_28oct_manual.csv"
+
+glta_file2 <- "/Users/elacroi3/Documents/Research/SHI/Data/Microbial/ddPCR/gltA/lacroix_glta_02nov_manual.csv"
+
+nirK_file1 <- "/Users/elacroi3/Documents/Research/SHI/Data/Microbial/ddPCR/nirK/EML_nirK_SHI_samples_16jan_auto.csv" #note - this is the autointegration assignment from QuantaSoft software
+
+nirS_file1 <-  "/Users/elacroi3/Documents/Research/SHI/Data/Microbial/ddPCR/nirS/EML_nirS_SHI_samples_21jan_MANUAL_6000.csv" #note - this is the manual integration assignment, with threshold = 6000
+
+dsrab_file <-  "/Users/elacroi3/Documents/Research/SHI/Data/Microbial/ddPCR/dsrAB/EML_dsrAB_SHI_samples_15mar2022_auto.csv"
+
+#output_file <-  "~/Google Drive/My Drive/BoxMigration/Stanford (elacroix@stanford.edu)/Research/SHI/Data/DataCompilation/dna_ddpcr.csv"
+
+#total_anaerobe_file <-  "~/Google Drive/My Drive/BoxMigration/Stanford (elacroix@stanford.edu)/Research/SHI/Data/DataCompilation/total_anaerobe.csv"
+
+```
+
+
+## Figure theme
+```{r}
+my_theme <- function(base_size = 13, base_family = ""){ ## Control base font face and size. use `rel()` for relative font size.
+  theme_bw(base_size = base_size, base_family = base_family) %+replace%
+    theme(
+      panel.border = element_rect(colour = "black", fill = "transparent"),
+      panel.background  = element_blank(),
+      panel.grid = element_blank(),
+      strip.background = element_blank(),
+      legend.position="top",
+      legend.title = element_blank(),
+      strip.text = element_text(size = 11),
+      strip.text.y = element_text(size = 11)
+    )
+}
+
+```
+
+
+## Labels
+```{r}
+site_labels <- 
+  c(
+    "CREC" = "Carrington, ND",
+    "WO" = "Wooster, OH",
+    "GR" = "Novelty, MO",
+    "SM" = "Crossville, AL"
+  )
+```
+
+## Constants
+
+```{r}
+
+rxn_dilution_factor <- 25
+
+```
+
+
+# Import and combine data
+
+## Extraction data
+
+```{r}
+dna_extraction <- 
+  extract_data_file %>% 
+  read_csv %>% 
+  #read_xlsx(sheet = "DNA Extraction") %>% 
+  mutate(
+    across(landscape_position, ~na_if(., "NA"))
+  ) %>% 
+  select(
+    site,
+    till,
+    amend,
+    landscape_position,
+    rep = fieldrep,
+    mass_g,
+    nano_260_280,
+    nano_260_230,
+    qubit_ng_ul,
+    qubit_ng_mL
+  )
+
+dna_extraction
+```
+
+
+## Soil Moisture data
+
+```{r}
+
+bd_est <- 
+  all_data_file %>% 
+  read_xlsx(sheet = "gravimetric", na = "NA") %>% 
+  group_by(
+    site, 
+    till, 
+    amend, 
+    field_rep, 
+    landscape_position,
+    vwc_probe
+  ) %>% 
+  summarise(
+    avg_bd = mean(bd, na.rm = TRUE),
+    avg_vwc = mean(vwc, na.rm = TRUE),
+    avg_gwc = mean(gwc, na.rm = TRUE)
+  ) %>% 
+  select(    
+    site, 
+    till, 
+    amend, 
+    field_rep, 
+    landscape_position,
+    vwc_probe,
+    avg_bd,
+    avg_vwc,
+    avg_gwc
+  ) %>% 
+  ungroup()
+
+bd_est
+
+all_ddpcr_data
+
+
+
+```
+
+
+## Import ddPCR results
+
+### mcrA
+
+This code:
+* reads in the mcra data 
+* designates "No Calls" to 0 (confirmed visually)
+* selects relevant data fields 
+* omits data with fewer than 10,000 droplets
+
+
+```{r}
+mcrA_data <- 
+  mcrA_file %>% 
+  read_xlsx(sheet = "ddPCR") %>% 
+  mutate(across(landscape_position, ~na_if(., "NA"))) %>% 
+  mutate(
+    target_gene = "mcrA",
+    across(c(conc, conc_min, conc_max), as.numeric),
+    across(conc, ~if_else(is.na(.), 0, .)) #treat NAs like 0s
+  ) %>% 
+  select(
+    -c(
+      target_type, 
+      status, 
+      positives, 
+      negatives, 
+      copies_per_20uL
+    )
+  ) %>% 
+  rename(rep = field_rep) %>% 
+  filter(total_droplets > 10000)
+
+
+mcrA_data %>% arrange(site, till, amend, rep, landscape_position)
+
+
+```
+
+### gltA
+
+This code:
+* designates the PCR template dilution
+* reads in the glta data 
+* selects relevant data fields
+* omits data with fewer than 10,000 droplets
+
+
+```{r}
+glta_df <- 10
+
+glta_data <-
+  glta_file2 %>% 
+  read_csv() %>% 
+  mutate(across(c(Concentration), as.numeric)) %>% 
+  bind_rows(glta_file1 %>% read_csv()) %>% 
+  select(
+    sample_name = Sample,
+    target_type = TargetType,
+    status = Status,
+    conc = Concentration, 
+    copies_per_20uL = CopiesPer20uLWell,
+    conc_min = PoissonConfMin,
+    conc_max = PoissonConfMax,
+    positives = Positives,
+    negatives = Negatives,
+    total_droplets = AcceptedDroplets
+  ) %>% 
+  separate(sample_name, into = c("site", "till", "amend", "rep")) %>% 
+  mutate(
+    landscape_position = if_else(site == "GR", amend, NA_character_),
+    across(amend, ~if_else(site == "GR", "U", .)),
+    across(c(conc, rep), as.numeric),
+    target_gene = "gltA"
+  ) %>% 
+  filter(site %in% c("SM", "CREC", "GR", "WO")) %>% 
+  mutate(
+    across(c(conc, conc_min, conc_max), ~ . * glta_df)
+  ) %>% 
+  select(
+    -c(
+      target_type, 
+      status, 
+      positives, 
+      negatives, 
+      copies_per_20uL, 
+      )
+  ) %>% 
+  filter(total_droplets > 10000)
+
+```
+
+### nirK
+
+This code:
+* reads in the nirK data 
+* selects relevant data fields 
+* corrects for template dilution
+* omits data with fewer than 10,000 droplets
+
+
+```{r}
+nirk_data <-
+  nirK_file1 %>% 
+  read_csv() %>% 
+  select(
+    sample_name = Sample,
+    target_type = TargetType,
+    status = Status,
+    conc = Concentration, 
+    copies_per_20uL = CopiesPer20uLWell,
+    conc_min = PoissonConfMin,
+    conc_max = PoissonConfMax,
+    positives = Positives,
+    negatives = Negatives,
+    total_droplets = AcceptedDroplets
+  ) %>% 
+  separate(
+    sample_name, 
+    into = c("site", "till", "amend", "rep"),
+    sep = c("-")
+  ) %>% 
+  mutate(
+    dilution = str_extract(rep, "(?<=:)\\d+"),
+    across(rep, ~str_extract(., "^\\d")),
+    landscape_position = if_else(site == "GR", amend, NA_character_),
+    across(amend, ~if_else(site == "GR", "U", .)),
+    across(c(conc, dilution, rep), as.numeric),
+    target_gene = "nirK"
+  ) %>% 
+  filter(site %in% c("SM", "CREC", "GR", "WO")) %>% 
+  mutate(
+    across(c(conc, conc_min, conc_max), ~ . * dilution)
+  ) %>% 
+  select(
+    -c(
+      target_type, 
+      status, 
+      positives, 
+      negatives, 
+      copies_per_20uL, 
+      dilution
+      )
+  ) %>% 
+  filter(total_droplets > 10000)
+
+
+```
+
+
+### nirS
+
+This code:
+* reads in the nirs data 
+* selects relevant data fields and renames to be nirs specific
+* corrects for template dilution
+* omits data with fewer than 10,000 droplets
+
+
+```{r}
+nirs_data <-
+  nirS_file1 %>%
+  read_csv() %>%
+  select(
+    sample_name = Sample,
+    target_type = TargetType,
+    status = Status,
+    conc = Concentration,
+    copies_per_20uL = CopiesPer20uLWell,
+    conc_min = PoissonConfMin,
+    conc_max = PoissonConfMax,
+    positives = Positives,
+    negatives = Negatives,
+    total_droplets = AcceptedDroplets
+  ) %>%
+  separate(
+    sample_name,
+    into = c("site", "till", "amend", "rep"),
+    sep = c("-")
+  ) %>% 
+  mutate(
+    dilution = str_extract(rep, "(?<=:)\\d+"),
+    across(rep, ~str_extract(., "^\\d")),
+    landscape_position = if_else(site == "GR", amend, NA_character_),
+    across(amend, ~if_else(site == "GR", "U", .)),
+    across(c(conc, dilution, rep), as.numeric),
+    target_gene = "nirS"
+  ) %>% 
+  filter(site %in% c("SM", "CREC", "GR", "WO")) %>%
+  mutate(
+    across(c(conc, conc_min, conc_max), ~ . * dilution)
+  ) %>%
+  select(
+    -c(
+      target_type,
+      status,
+      positives,
+      negatives,
+      copies_per_20uL,
+      dilution
+      )
+  ) %>% 
+  filter(total_droplets > 10000)
+
+
+
+```
+### dsrAB
+
+This code:
+* specifies the dilution factor for the DNA template
+* reads in the dsrAB data 
+* selects relevant data fields 
+* corrects for template dilution
+* omits data with fewer than 10,000 droplets
+
+
+```{r}
+
+dsrab_dilution_factor <- 50
+
+dsrab_data <-
+  dsrab_file %>%
+  read_csv() %>%
+  select(
+    sample_name = Sample,
+    target_type = TargetType,
+    status = Status,
+    conc = Concentration,
+    copies_per_20uL = CopiesPer20uLWell,
+    conc_min = PoissonConfMin,
+    conc_max = PoissonConfMax,
+    positives = Positives,
+    negatives = Negatives,
+    total_droplets = AcceptedDroplets
+  ) %>%
+  separate(
+    sample_name,
+    into = c("site", "till", "amend", "rep"),
+    sep = c("-")
+  ) %>% 
+  mutate(
+    landscape_position = if_else(site == "GR", amend, NA_character_),
+    across(amend, ~if_else(site == "GR", "U", .)),
+    across(c(conc, rep), as.numeric)
+  ) %>% 
+  filter(site %in% c("SM", "CREC", "GR", "WO")) %>%
+  mutate(
+    across(c(conc, conc_min, conc_max), ~ . * dsrab_dilution_factor),
+    target_gene = "dsrAB"
+  ) %>% 
+  select(
+    -c(
+      target_type,
+      status,
+      positives,
+      negatives,
+      copies_per_20uL
+      )
+  ) %>% 
+  filter(total_droplets > 10000)
+
+```
+
+### 16S
+
+This code:
+* reads in the 16S data 
+* selects relevant data fields and renames to be 16S specific
+* omits data from wells with pipetting errors (as recorded in laboratory notebook)
+* omits data with fewer than 10,000 droplets
+
+```{r}
+
+sixteenS_data <- 
+  sixteenS_file_auto %>% 
+  read_csv() %>% 
+  filter(
+    TargetType == "Ch1Unknown" & Well != "F09" & Well != "G09" & Well != "G07"
+  ) %>%
+  select(
+    sample_name = Sample,
+    target_type = TargetType,
+    status = Status,
+    conc = Concentration, 
+    copies_per_20uL = CopiesPer20uLWell,
+    conc_min = PoissonConfMin,
+    conc_max = PoissonConfMax,
+    positives = Positives,
+    negatives = Negatives,
+    total_droplets = AcceptedDroplets
+  ) %>% 
+  separate(
+    sample_name, 
+    into = c("site", "till", "amend", "rep"),
+    sep = c("-")
+  ) %>% 
+  mutate(
+    dilution = as.numeric(str_extract(rep, "(?<=:)\\d+")),
+    across(rep, ~str_extract(., "^\\d")),
+    landscape_position = if_else(site == "GR", amend, NA_character_),
+    across(amend, ~if_else(site == "GR", "U", .)),
+    across(c(conc, rep), as.numeric),
+    target_gene = "16S"
+  ) %>% 
+  filter(
+    site %in% c("SM", "CREC", "GR", "WO"),
+    !(site == "SM" & till %in% c("NT", "UN") & dilution == 10),
+    !(site == "SM" & till == "UN" & dilution == 1000)
+  ) %>% 
+  mutate(
+    sixteenS_conc = conc * dilution,
+    sixteenS_conc_min = conc_min * dilution,
+    sixteenS_conc_max = conc_max * dilution,  #
+    sixteenS_droplets = total_droplets
+  ) %>% 
+  select(
+    -c(
+      target_type, 
+      status, 
+      positives, 
+      negatives, 
+      copies_per_20uL, 
+      dilution
+      )
+  ) %>% 
+  filter(total_droplets > 10000) %>% 
+  group_by(site, till, amend, rep, landscape_position) %>% 
+  summarise(across(c(sixteenS_conc, sixteenS_conc_min, sixteenS_conc_max), mean))
+
+
+
+```
+## Combine data
+
+This code:
+* combines all the target gene tibbles into one
+* corrects concentration values to account for dilution within PCR 
+* calculates target gene abundance normalized to 16S abundance
+* calculates copies per g soil extracted
+
+NOTE - all concentrations are currently in copies per uL
+
+
+```{r}
+
+all_ddpcr_data <- 
+  bind_rows(mcrA_data, glta_data, dsrab_data, nirk_data, nirs_data) %>% 
+  left_join(
+    sixteenS_data, 
+    by = c("site", "till", "amend", "landscape_position", "rep")
+  ) %>% 
+  left_join(
+    dna_extraction,
+    by =
+      c("site", "till", "amend", "landscape_position", "rep")
+  ) %>% 
+  left_join(
+    bd_est,
+    by =
+      c("site", "till", "amend", "landscape_position", "rep" = "field_rep")
+  ) %>% 
+  mutate(
+    across(
+      c(conc, 
+        sixteenS_conc, 
+        conc_min, 
+        conc_max, 
+        sixteenS_conc_min, 
+        sixteenS_conc_max
+      ), ~ . * rxn_dilution_factor
+    ),
+    g_h2o = mass_g / (1 / avg_gwc + 1),
+    mass_dry_soil = mass_g - g_h2o,
+    prop = conc / sixteenS_conc,
+    copies_per_g_sixteenS = sixteenS_conc * 100 / mass_dry_soil,
+    copies_per_g = conc * 100 / mass_dry_soil
+  ) %>% 
+  filter(
+    !(site == "WO" & till == "UN" & rep == 2) #remove outlier
+  )
+
+all_ddpcr_data
+
+```
+
+
+
+
+
+
+
+
+
+
+# Absolute Abundance: Unamended, effect of tillage across sites
+
+## Figure - faceted
+
+```{r}
+
+# my_breaks <- 
+#   function(x) { if (max(x) < 6000) seq(0, 5000, 1000) else seq(0, 15000, 5000) }
+
+all_ddpcr_data %>% 
+  group_by(site, till, amend, landscape_position, target_gene) %>% 
+  summarise(
+    avg_copies_per_g = mean(copies_per_g, na.rm = TRUE),
+    se_copies_per_g = sd(copies_per_g, na.rm = TRUE) / sqrt(n()),
+    count = n()
+  ) %>% 
+  filter(site != "GR", amend == "U", till %in% c("CT", "NT", "UN")) %>% 
+  mutate(
+    across(
+      target_gene, 
+      ~factor(
+        ., 
+        levels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA"),
+        labels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA")
+      )
+    )
+  ) %>% 
+  ggplot(aes(y = avg_copies_per_g, x = till, fill = target_gene)) + 
+  geom_col(position = "dodge", color = "black") +
+  geom_errorbar(
+    aes(
+      ymin = avg_copies_per_g,
+      ymax = avg_copies_per_g + se_copies_per_g
+    ),
+    position = "dodge"
+  ) +
+  scale_fill_brewer(palette = "RdYlBu") +
+  scale_y_continuous(
+    labels = scientific, 
+    n.breaks = 4,
+    expand = expand_scale(mult = c(0, 0.25))
+  ) +
+  facet_grid(
+    cols = vars(site), 
+    rows = vars(target_gene), 
+    scales = "free",
+    labeller = labeller(site = site_labels)
+  ) + 
+  theme_bw() + 
+  my_theme() +
+  theme(
+    #panel.grid = element_blank(),
+    aspect.ratio = 1.1,
+    legend.position = "none",
+    #strip.text = element_text(size = 8),
+    strip.text.y = element_text(face = "italic"),
+    strip.text.x = element_text(size = 10)
+
+  ) +
+  labs(
+    y = "Copies per g soil",
+    x = NULL
+  )
+
+#ggsave("~/Desktop/absolute_abundance_bygene_till_bigtext_no_outlier.png", dpi = 450)
+
+```
+### Statistics - nirK
+
+#### nirK - all sites
+
+*Normality: * no single transformation makes all 9 groups normal
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site != "GR", till != "MT", amend == "U",target_gene == "nirK") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(normality_p)
+
+```
+*Variances:*
+
+```{r}
+
+leveneTest( 
+  copies_per_g ~ interaction(till, site),
+  data = 
+    all_ddpcr_data %>% 
+    filter(site != "GR", till != "MT", amend == "U",target_gene == "nirK") 
+) 
+
+```
+
+*Statistical test:* Kruskal-Wallis test
+
+```{r}
+
+kruskal.test(
+  copies_per_g ~ interaction(till, site), 
+  data = 
+    all_ddpcr_data %>% 
+    filter(site != "GR", till != "MT", amend == "U", target_gene == "nirK")
+)
+
+?cldList
+
+
+dunn <- 
+  dunnTest(
+    copies_per_g ~ interaction(till, site), 
+    data = 
+      all_ddpcr_data %>% 
+      filter(site != "GR", till != "MT", amend == "U", target_gene == "nirK"),
+    method = "bh"
+  )
+
+dunn_pt <- dunn$res
+
+cldList(comparison = dunn_pt$Comparison,
+        p.value    = dunn_pt$P.adj,
+        threshold  = 0.05,
+        print.comp = TRUE
+        )
+
+
+dunn_pt
+
+```
+
+
+#### nirK - CREC
+
+*Normality:* no single transformation makes all 3-4 groups normal
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site == "CREC", amend == "U",target_gene == "nirK") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(site, normality_p)
+
+```
+*Variances:* equal variances
+
+```{r}
+
+leveneTest( 
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", amend == "U",target_gene == "nirK") 
+) 
+
+```
+
+*Statistical test:* Kruskal-Wallis test
+
+```{r}
+
+kruskal.test(
+  copies_per_g ~ till, 
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", amend == "U",target_gene == "nirK")
+)
+
+```
+
+
+
+#### nirK - SM
+
+*Normality:* all normal
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site == "SM", amend == "U",target_gene == "nirK") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(site, normality_p)
+
+```
+
+*Variances:* not equal
+
+```{r}
+
+bartlett.test( 
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", amend == "U",target_gene == "nirK") 
+) 
+
+```
+
+*Statistics:* Welch's ANOVA 
+
+```{r}
+
+oneway.test(
+  copies_per_g ~ till, 
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", amend == "U", target_gene == "nirK"),
+  var.equal = FALSE
+)
+
+
+games_howell_test(
+  copies_per_g ~ till, 
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", amend == "U", target_gene == "nirK")
+)
+
+```
+
+
+
+#### nirK -  WO
+
+*Normality:* Normal!
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site == "WO", amend == "U",target_gene == "nirK") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(site, normality_p)
+
+```
+
+*Variances:* equal
+
+```{r}
+leveneTest( 
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "WO", amend == "U",target_gene == "nirK") 
+) 
+
+```
+
+*Statistics:* ANOVA
+
+```{r}
+
+wo_nirk_aov <- 
+  aov(
+      copies_per_g ~ till,
+      data = 
+        all_ddpcr_data %>% 
+        filter(site == "WO", amend == "U",target_gene == "nirK") 
+)
+
+
+summary(wo_nirk_aov)
+
+tukey_wo_nirk <- TukeyHSD(wo_nirk_aov)
+
+tukey_wo_nirk
+
+
+```
+
+
+### Statistics - nirS
+
+#### nirS - all sites
+
+
+*Normality:* All 9 are normal after log transformation
+
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site != "GR", till != "MT", amend == "U",target_gene == "nirS") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(log(copies_per_g))$p.value
+  ) %>%
+  arrange(normality_p)
+```
+
+*Variance:* unequal 
+```{r}
+
+bartlett.test(
+  log(copies_per_g) ~ interaction(till, site),
+  data = 
+    all_ddpcr_data %>% 
+    filter(site != "GR", till != "MT", amend == "U",target_gene == "nirS") 
+)
+
+
+
+```
+
+*Statistics:*: Welch's ANOVA
+
+```{r}
+
+
+oneway.test(
+  log(copies_per_g) ~ interaction(site, till), 
+  data = 
+    all_ddpcr_data %>% 
+    filter(site != "GR", till!= "MT", amend == "U", target_gene == "nirS"),
+  var.equal = FALSE
+)
+
+gh_nirs_all_sites <- 
+  games_howell_test(
+  log_copies_per_g ~ site_till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site != "GR", till!= "MT", amend == "U", target_gene == "nirS") %>% 
+    mutate(
+      log_copies_per_g = log(copies_per_g),
+      site_till = str_c(site, till, sep = "-")
+    )
+) %>% 
+  mutate(
+    across(c(group1, group2), ~(str_replace_all(., "-", "."))),
+    comparison = str_c(group1, "-", group2)
+  )
+
+
+# gh_nirs_all_sites%>% 
+#   pull(p.adj) %>%
+#   setNames(gh_nirs_all_sites %>% pull(comparison)) %>% 
+#   multcompLetters(compare = "<=", threshold = 0.05, Letters = letters)
+# 
+# gh_nirs_all_sites
+# 
+# 
+# dunn_pt <- dunn$res
+
+cldList(comparison = gh_nirs_all_sites$comparison,
+        p.value    = gh_nirs_all_sites$p.adj,
+        threshold  = 0.05,
+        print.comp = TRUE
+        )
+
+
+```
+
+#### nirS - CREC
+
+*Normality:* All normal.
+
+```{r}
+all_ddpcr_data %>% 
+  filter(site == "CREC", amend == "U",target_gene == "nirS") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(site, normality_p)
+```
+
+*Variances:* Equal
+
+```{r}
+
+bartlett.test(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", amend == "U",target_gene == "nirS") 
+)
+
+
+```
+
+*Statistics:* ANOVA
+
+```{r}
+aov(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", amend == "U", target_gene == "nirS") 
+) %>% summary()
+```
+
+#### nirS - SM
+
+*Normality:* Normal after log transformation
+
+```{r}
+all_ddpcr_data %>% 
+  filter(site == "SM", amend == "U",target_gene == "nirS") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(log(copies_per_g))$p.value
+  ) %>%
+  arrange(site, normality_p)
+```
+
+*Variances:* equal
+```{r}
+bartlett.test(
+  log(copies_per_g) ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", amend == "U",target_gene == "nirS") 
+)
+```
+
+*Statistics:* ANOVA
+
+```{r}
+
+aov(
+  log(copies_per_g) ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", amend == "U",target_gene == "nirS") 
+) %>% summary()
+
+```
+
+#### nirS - WO
+
+*Normality:* All normal
+
+```{r}
+all_ddpcr_data %>% 
+  filter(site == "WO", amend == "U",target_gene == "nirS") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(site, normality_p)
+```
+
+
+*Variances:*
+```{r}
+
+bartlett.test(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "WO", amend == "U",target_gene == "nirS") 
+)
+
+```
+
+
+*Statistics:* ANOVA
+
+```{r}
+aov(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "WO", amend == "U",target_gene == "nirS") 
+) %>% summary()
+```
+
+### Statistics gltA
+
+#### gltA - all sites
+
+*Normality:* All approximately normal
+
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site != "GR", till != "MT", amend == "U",target_gene == "gltA") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(normality_p)
+```
+*Variances:* Very much unequal variances
+
+```{r}
+
+bartlett.test(
+  copies_per_g ~ interaction(till, site),
+  data = 
+    all_ddpcr_data %>% 
+    filter(site != "GR", till != "MT", amend == "U",target_gene == "gltA") 
+)
+
+
+
+
+```
+
+*Statistics:* Welch's ANOVA
+
+```{r}
+oneway.test(
+  copies_per_g ~ interaction(till, site),
+  data = 
+    all_ddpcr_data %>% 
+    filter(site != "GR", till != "MT", amend == "U",target_gene == "gltA") 
+)
+
+gh_glta_all_sites <-
+  games_howell_test(
+    copies_per_g ~ site_till,
+    data = 
+      all_ddpcr_data %>% 
+      filter(site != "GR", till!= "MT", amend == "U", target_gene == "gltA") %>% 
+      mutate(
+        site_till = str_c(site, till, sep = "-")
+      )
+  ) %>% 
+  mutate(
+    across(c(group1, group2), ~(str_replace_all(., "-", "."))),
+    comparison = str_c(group1, "-", group2)
+  ) 
+
+# 
+# gh_glta_all_sites%>% 
+#   pull(p.adj) %>%
+#   setNames(gh_glta_all_sites %>% pull(comparison)) %>% 
+#   multcompLetters(compare = "<=", threshold = 0.05, Letters = letters)
+
+
+
+cldList(comparison = gh_glta_all_sites$comparison,
+        p.value    = gh_glta_all_sites$p.adj,
+        threshold  = 0.05,
+        print.comp = TRUE
+        )
+
+
+```
+
+#### gltA - CREC
+
+*Normality:* all approximately normal 
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site == "CREC", amend == "U",target_gene == "gltA") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(site, normality_p)
+
+```
+
+*Variances:* Equal variances
+
+```{r}
+
+bartlett.test(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", amend == "U",target_gene == "gltA") 
+)
+
+```
+
+*Statistics:* ANOVA
+
+```{r}
+
+crec_glta_anova <- 
+  aov(
+    copies_per_g ~ till,
+    data = 
+      all_ddpcr_data %>% 
+      filter(site == "CREC", amend == "U",target_gene == "gltA") 
+  ) 
+
+crec_glta_anova %>% summary()
+
+tukey_crec_glta <- TukeyHSD(crec_glta_anova)
+
+multcompLetters4(crec_glta_anova, tukey_crec_glta)
+```
+
+#### gltA - SM
+
+*Normality:* all approximately normal 
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site == "SM", amend == "U",target_gene == "gltA") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(site, normality_p)
+
+```
+
+
+*Variances:* equal variances
+
+```{r}
+bartlett.test(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", amend == "U",target_gene == "gltA") 
+)
+
+```
+
+
+*Statistics:* ANOVA
+
+```{r}
+
+aov(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", amend == "U",target_gene == "gltA") 
+) %>% 
+  summary()
+
+```
+
+
+#### gltA - WO
+
+*Normality:* all approximately normal 
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site == "WO", amend == "U",target_gene == "gltA") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(site, normality_p)
+
+```
+
+*Variances:* Barely equal variances
+
+```{r}
+
+bartlett.test(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "WO", amend == "U",target_gene == "gltA") 
+)
+
+```
+
+
+*Statistics:*  ANOVA
+
+```{r}
+
+aov(
+  copies_per_g ~ till, 
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "WO", amend == "U",target_gene == "gltA")
+  #var.equal = FALSE
+) %>% summary()
+
+# games_howell_test(
+#   copies_per_g ~ till,
+#   data = 
+#     all_ddpcr_data %>% 
+#     filter(site == "WO", amend == "U",target_gene == "gltA"), 
+# )
+
+
+
+```
+
+### Statistics - dsrAB
+
+#### dsrAB - all sites
+
+*Normality:* Cannot get WO-NT-U normal, even upon transformations 
+
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site != "GR", till != "MT", amend == "U",target_gene == "dsrAB") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(normality_p)
+
+```
+
+*Variances:* Equal variances
+
+```{r}
+
+leveneTest( 
+  copies_per_g ~ interaction(till, site),
+  data = 
+    all_ddpcr_data %>% 
+    filter(site != "GR", till != "MT", amend == "U",target_gene == "dsrAB") 
+) 
+
+```
+
+*Statistical test:* Kruskal-Wallis test
+
+```{r}
+
+kruskal.test(
+  copies_per_g ~ interaction(till, site), 
+  data = 
+    all_ddpcr_data %>% 
+    filter(site != "GR", till != "MT", amend == "U",target_gene == "dsrAB")
+)
+
+
+dunn_dsrab <- 
+  dunnTest(
+    copies_per_g ~ interaction(till, site), 
+    data = 
+      all_ddpcr_data %>% 
+      filter(site != "GR", till != "MT", amend == "U", target_gene == "dsrAB"),
+    method = "bh"
+  )
+
+
+
+dunn_pt_dsrab <- dunn_dsrab$res
+
+cldList(comparison = dunn_pt_dsrab$Comparison,
+        p.value    = dunn_pt_dsrab$P.adj,
+        threshold  = 0.05,
+        print.comp = TRUE
+        )
+
+
+```
+
+#### dsrAB - CREC
+
+*Normality:* all approximately normal 
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site == "CREC", amend == "U", target_gene == "dsrAB") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(site, normality_p)
+
+```
+*Variances:* equal
+```{r}
+
+bartlett.test(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", amend == "U",target_gene == "dsrAB") 
+)
+
+```
+
+*Statistics:* ANOVA
+
+```{r}
+
+crec_dsrab_anova <- 
+  aov(
+    copies_per_g ~ till,
+    data = 
+      all_ddpcr_data %>% 
+      filter(site == "CREC", amend == "U",target_gene == "dsrAB") 
+  ) 
+
+crec_dsrab_anova %>% summary()
+
+tukey_crec_dsrab <- TukeyHSD(crec_dsrab_anova)
+
+multcompLetters4(crec_dsrab_anova, tukey_crec_dsrab)
+
+```
+
+
+#### dsrAB - SM
+
+
+*Normality:* all approximately normal 
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site == "SM", amend == "U", target_gene == "dsrAB") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(site, normality_p)
+
+```
+
+*Variances:* Unequal
+```{r}
+
+bartlett.test(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", amend == "U", target_gene == "dsrAB") 
+)
+
+```
+
+*Statistics:* Welch's ANOVA
+
+```{r}
+
+oneway.test(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", amend == "U",target_gene == "dsrAB") 
+)
+
+```
+
+
+#### dsrAB - WO
+
+*Normality:* Non-normal, even after transformation attempts
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site == "WO", amend == "U", target_gene == "dsrAB") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(site, normality_p)
+
+```
+
+*Variances:* approximately equal
+```{r}
+
+leveneTest(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "WO", amend == "U",target_gene == "dsrAB") 
+)
+
+```
+
+*Statistics:* Kruskal-Wallis
+
+```{r}
+kruskal.test(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "WO", amend == "U",target_gene == "dsrAB") 
+)
+
+dunnTest(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "WO", amend == "U",target_gene == "dsrAB"),
+  method = "bh"
+)
+```
+
+
+### Statistics - mcrA
+
+#### mcrA - all sites
+
+*Normality:* Cannot find a transformation that will work for all 9
+
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site != "GR", till != "MT", amend == "U",target_gene == "mcrA") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(normality_p)
+```
+*Variances:* Equal
+```{r}
+leveneTest(
+  copies_per_g ~ interaction(till, site),
+  data = 
+    all_ddpcr_data %>% 
+    filter(site != "GR", till != "MT", amend == "U",target_gene == "mcrA") 
+)
+```
+
+*Statistics:* Kruskal-Wallis
+
+
+```{r}
+
+kruskal.test(
+  copies_per_g ~ interaction(till, site), 
+  data = 
+    all_ddpcr_data %>% 
+    filter(site != "GR", till != "MT", amend == "U", target_gene == "mcrA")
+)
+
+
+dunn_mcra_all_sites <-
+  dunnTest(
+    copies_per_g ~ interaction(till, site), 
+    data = 
+      all_ddpcr_data %>% 
+      filter(site != "GR", till != "MT", amend == "U", target_gene == "mcrA"),
+    method = "bh"
+  )
+
+dunn_pt_mcra <- dunn_mcra_all_sites$res
+
+cldList(comparison = dunn_pt_dsrab$Comparison,
+        p.value    = dunn_pt_dsrab$P.adj,
+        threshold  = 0.05,
+        print.comp = TRUE
+        )
+
+
+```
+
+
+#### mcrA - CREC
+
+*Normality:* All approximately normal
+
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site == "CREC", amend == "U",target_gene == "mcrA") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(normality_p)
+
+```
+
+
+*Variances:* Equal
+
+```{r}
+
+bartlett.test(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", amend == "U",target_gene == "mcrA") 
+)
+
+```
+
+
+*Statistics:* ANOVA
+
+```{r}
+
+crec_mcra_anova <- 
+  aov(
+    copies_per_g ~ till,
+    data = 
+      all_ddpcr_data %>% 
+      filter(site == "CREC", amend == "U",target_gene == "mcrA") 
+  ) 
+
+crec_mcra_anova %>% summary()
+
+tukey_crec_mcra <- TukeyHSD(crec_mcra_anova)
+
+multcompLetters4(crec_mcra_anova, tukey_crec_mcra)
+
+```
+
+#### mcrA - SM
+
+*Normality:* All approximately normal
+
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site == "SM", amend == "U",target_gene == "mcrA") %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(normality_p)
+
+```
+
+*Variances:* Unequal
+
+```{r}
+
+bartlett.test(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", amend == "U",target_gene == "mcrA") 
+)
+
+```
+
+*Statistics:* Welch's ANOVA
+
+```{r}
+
+oneway.test(
+  copies_per_g ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", amend == "U",target_gene == "mcrA"),
+  var.equal = FALSE #this is the default setting 
+)
+
+
+```
+
+
+#### mcrA - WO
+
+*Normality:* Normal after log transformation
+
+```{r}
+
+all_ddpcr_data %>% 
+  filter(site == "WO", amend == "U", target_gene == "mcrA") %>% 
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(log(copies_per_g))$p.value
+  ) %>%
+  arrange(normality_p)
+
+```
+
+*Variances:* Equal
+
+```{r}
+
+bartlett.test(
+  log(copies_per_g) ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "WO", amend == "U",target_gene == "mcrA") 
+)
+
+```
+
+*ANOVA*
+
+```{r}
+aov(
+  log(copies_per_g) ~ till,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "WO", amend == "U",target_gene == "mcrA") 
+) %>% summary()
+
+
+```
+
+## Figure - stacked bars
+
+```{r}
+
+total_anaerobe <-
+  all_ddpcr_data %>% 
+  group_by(site, till, amend, landscape_position, target_gene, rep) %>% 
+  summarise(
+    avg_copies_per_g = mean(copies_per_g, na.rm = TRUE),
+  ) %>% 
+  group_by(site, till, amend, landscape_position, rep) %>% 
+  summarise(
+    anaerobe_copies_per_g = sum(avg_copies_per_g),
+    count = n() #I'm missing a gene for GR-NT-F-1 and GR-NT-F-3 due to droplet generation issues
+  ) %>% 
+  filter(count == 5)
+
+errors <-
+  all_ddpcr_data %>% 
+  group_by(site, till, amend, landscape_position, target_gene) %>% 
+  summarise(
+    avg_copies_per_g = mean(copies_per_g, na.rm = TRUE),
+    se_copies_per_g = sd(copies_per_g, na.rm = TRUE) / sqrt(n()),
+  ) %>% 
+  group_by(site, till, amend, landscape_position) %>% 
+  summarise(
+    sum_se = sum(se_copies_per_g),
+    sum_copies = sum(avg_copies_per_g),
+    count = n()
+  ) 
+
+
+all_ddpcr_data %>% 
+  group_by(site, till, amend, landscape_position, target_gene) %>% 
+  summarise(
+    avg_copies_per_g = mean(copies_per_g, na.rm = TRUE),
+    se_copies_per_g = sd(copies_per_g, na.rm = TRUE) / sqrt(n()),
+  ) %>% 
+  filter(site != "GR", amend == "U", till %in% c("CT", "NT", "UN")) %>%
+  mutate(
+    across(
+      target_gene, 
+      ~factor(
+        ., 
+        levels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA"),
+        labels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA")
+      )
+    )
+  ) %>% 
+  left_join(errors, by = c("site", "till", "amend", "landscape_position")) %>% 
+  ggplot(aes(x = till, fill = target_gene)) + 
+  geom_col(aes(y = avg_copies_per_g), position = "stack", color = "black") +
+  geom_errorbar(
+    aes(y = sum_copies, ymin = sum_copies, ymax = sum_copies + sum_se)
+  ) +
+  scale_fill_brewer(palette = "RdYlBu") +
+  scale_y_continuous(
+    labels = scientific,
+    expand = expand_scale(mult = c(0, 0.1))
+  ) +
+  facet_grid(
+    cols = vars(site), 
+    scales = "free", 
+    labeller = labeller(site = site_labels)
+  ) + 
+  theme_bw() + 
+  my_theme() +
+  theme(
+    #panel.grid = element_blank(),
+    aspect.ratio = 4.5
+  ) +
+  labs(
+    y = "Copies per g soil",
+    x = NULL
+  )
+
+
+total_anaerobe
+
+#ggsave("~/Desktop/absolute_abundance_stacked_till_bigtext_no_outlier.png", dpi = 450)
+```
+
+### Statistics - total anaerobe
+
+#### total anaerobe - all sites
+
+*Normality:* We can't know if WO-UN-U is normal because n = 2
+
+```{r}
+
+total_anaerobe %>% 
+  filter(site != "GR", till != "MT", amend == "U") %>%
+  filter(!(site == "WO" & till == "UN" )) %>%  #excluding n = 2 group, assume normal
+  group_by(site, till, amend) %>% 
+  summarise(
+    normality_p = shapiro.test(anaerobe_copies_per_g)$p.value
+  ) %>%
+  arrange(normality_p)
+
+```
+
+*Variances:* Variances are not equal
+
+```{r}
+bartlett.test(
+  anaerobe_copies_per_g ~ interaction(site, till),
+  data = 
+    total_anaerobe %>% 
+    filter(site != "GR", till != "MT", amend == "U")
+)
+```
+
+*Statistics:* Kruskal Wallis 
+
+```{r}
+
+kruskal.test(
+  anaerobe_copies_per_g ~ interaction(site, till),
+  data = total_anaerobe %>%
+    filter(site != "GR", till != "MT", amend == "U")
+)
+
+dunn_anaerobe_all_sites <- 
+  dunnTest(
+    anaerobe_copies_per_g ~ interaction(site, till),
+    data = total_anaerobe %>%
+      filter(site != "GR", till != "MT", amend == "U"),
+      method = "bh"
+  )
+
+
+dunn_all_pt <- dunn_anaerobe_all_sites$res
+
+dunn_all_pt
+
+
+cldList(comparison = dunn_all_pt$Comparison,
+        p.value    = dunn_all_pt$P.adj,
+        threshold  = 0.05,
+        print.comp = TRUE
+        )
+
+```
+
+
+#### total anaerobe - CREC
+
+*Normality:* all approximately normal
+
+```{r}
+
+total_anaerobe %>% 
+  filter(site == "CREC", amend == "U") %>%
+  group_by(site, till, amend) %>% 
+  summarise(
+    normality_p = shapiro.test(anaerobe_copies_per_g)$p.value
+  ) %>%
+  arrange(normality_p)
+
+```
+
+*Variances:* Variances are barely equal
+
+```{r}
+bartlett.test(
+  anaerobe_copies_per_g ~ till,
+  data = total_anaerobe %>% 
+  filter(site == "CREC", amend == "U")
+)
+```
+
+*Statistics:* ANOVA
+
+```{r}
+
+crec_anaer_aov <- 
+  aov(
+    anaerobe_copies_per_g ~ till,
+    data = total_anaerobe %>% 
+      filter(site == "CREC", amend == "U")
+  ) 
+
+crec_anaer_aov %>% summary()
+
+TukeyHSD(crec_anaer_aov)
+```
+
+#### total anaerobe -  SM
+
+*Normality:* all approximately normal
+
+```{r}
+
+total_anaerobe %>% 
+  filter(site == "SM", amend == "U") %>%
+  group_by(site, till, amend) %>% 
+  summarise(
+    normality_p = shapiro.test(anaerobe_copies_per_g)$p.value
+  ) %>%
+  arrange(normality_p)
+
+```
+
+*Variances:* Variances are equal
+
+```{r}
+bartlett.test(
+  anaerobe_copies_per_g ~ till,
+  data = total_anaerobe %>% 
+  filter(site == "SM", amend == "U")
+)
+```
+
+*Statistics:* 
+
+```{r}
+
+sm_anaer_aov <-
+  aov(
+    anaerobe_copies_per_g ~ till,
+    data = total_anaerobe %>% 
+      filter(site == "SM", amend == "U")
+  ) 
+
+sm_anaer_aov %>% summary()
+
+TukeyHSD(sm_anaer_aov)
+
+```
+
+#### total anaerobe - WO
+
+*Normality:* 
+
+```{r}
+
+total_anaerobe %>% 
+  filter(site == "WO", amend == "U", till != "UN") %>%
+  group_by(site, till, amend) %>% 
+  summarise(
+    normality_p = shapiro.test(sqrt(anaerobe_copies_per_g))$p.value
+  ) %>%
+  arrange(normality_p)
+
+```
+Assume normality for WO-UN
+
+*Variances:* Equal
+
+```{r}
+
+bartlett.test(
+    anaerobe_copies_per_g ~ till,
+  data = total_anaerobe %>% 
+  filter(site == "WO", amend == "U")
+)
+
+# leveneTest(
+#   anaerobe_copies_per_g ~ till,
+#   data = total_anaerobe %>% 
+#   filter(site == "WO", amend == "U")
+# )
+```
+
+*Statistics:* ANOVA
+
+```{r}
+
+wo_aov <- 
+aov(  
+  anaerobe_copies_per_g ~ till,
+  data = total_anaerobe %>% 
+    filter(site == "WO", amend == "U")
+)
+
+summary(wo_aov)
+
+TukeyHSD(wo_aov)
+
+# kruskal.test(
+#   anaerobe_copies_per_g ~ till,
+#   data = total_anaerobe %>% 
+#     filter(site == "WO", amend == "U")
+# )
+# 
+# dunnTest(
+#   anaerobe_copies_per_g ~ till,
+#   data = total_anaerobe %>% 
+#     filter(site == "WO", amend == "U"),
+#   method = "bh"
+# )
+
+```
+
+
+
+## Tillage - Carrington only
+
+### Figure - stacked bar
+```{r}
+all_ddpcr_data %>% 
+  group_by(site, till, amend, landscape_position, target_gene) %>% 
+  summarise(
+    avg_copies_per_g = mean(copies_per_g, na.rm = TRUE),
+    se_copies_per_g = sd(copies_per_g, na.rm = TRUE) / sqrt(n()),
+  ) %>% 
+  filter(site == "CREC", amend == "U") %>%
+  mutate(
+    across(
+      target_gene, 
+      ~factor(
+        ., 
+        levels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA"),
+        labels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA")
+      )
+    )
+  ) %>% 
+  left_join(errors, by = c("site", "till", "amend", "landscape_position")) %>% 
+  ggplot(aes(x = till, fill = target_gene)) + 
+  geom_col(aes(y = avg_copies_per_g), position = "stack", color = "black") +
+  geom_errorbar(
+    aes(y = sum_copies, ymin = sum_copies, ymax = sum_copies + sum_se)
+  ) +
+  scale_fill_brewer(palette = "RdYlBu") +
+  scale_y_continuous(labels = scientific) +
+  theme_bw() + 
+  my_theme() +
+  theme(
+    aspect.ratio = 2
+  ) +
+  labs(
+    y = "Copies per g soil",
+    x = NULL
+  )
+
+#ggsave("~/Desktop/absolute_abundance_CREC_stacked.png")
+
+```
+
+### Figure - faceted
+
+```{r}
+
+all_ddpcr_data %>% 
+
+  group_by(site, till, amend, landscape_position, target_gene) %>% 
+  summarise(
+    avg_copies_per_g = mean(copies_per_g, na.rm = TRUE),
+    se_copies_per_g = sd(copies_per_g, na.rm = TRUE) / sqrt(n())
+  ) %>% 
+  filter(site == "CREC", amend == "U") %>% 
+  mutate(
+    across(
+      target_gene, 
+      ~factor(
+        ., 
+        levels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA"),
+        labels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA")
+      )
+    )
+  ) %>% 
+  ggplot(aes(y = avg_copies_per_g, x = till, fill = target_gene)) + 
+  geom_col(position = "dodge", color = "black") +
+  geom_errorbar(
+    aes(
+      ymin = avg_copies_per_g,
+      ymax = avg_copies_per_g + se_copies_per_g
+    ),
+    position = "dodge"
+  ) +
+  scale_fill_brewer(palette = "RdYlBu") +
+  scale_y_continuous(labels = scientific) +
+  facet_grid(
+    #cols = vars(till), 
+    rows = vars(target_gene), 
+    scales = "free",
+    labeller = labeller(site = site_labels)
+  ) + 
+  theme_bw() + 
+  my_theme() +
+  theme(
+    #panel.grid = element_blank(),
+    aspect.ratio = 0.5,
+    legend.position = "none",
+    strip.text.y = element_text(face = "italic")
+  ) +
+  labs(
+    y = "Copies per g soil",
+    x = NULL
+  )
+
+#ggsave("~/Desktop/absolute_abundance_CREC_bygene.png")
+
+
+```
+
+# Absolute Abundance: Landscape Position 
+
+## Figure - faceted
+
+```{r}
+all_ddpcr_data %>% 
+  group_by(site, till, amend, landscape_position, target_gene) %>% 
+  summarise(
+    avg_copies_per_g = mean(copies_per_g, na.rm = TRUE),
+    se_copies_per_g = sd(copies_per_g, na.rm = TRUE) / sqrt(n())
+  ) %>% 
+  filter(site == "GR") %>% 
+  mutate(
+    across(
+      target_gene, 
+      ~factor(
+        ., 
+        levels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA"),
+        labels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA")
+      )
+    )
+  ) %>% 
+  ggplot(aes(y = avg_copies_per_g, x = landscape_position, fill = target_gene)) + 
+  geom_col(position = "dodge", color = "black") +
+  geom_errorbar(
+    aes(
+      ymin = avg_copies_per_g,
+      ymax = avg_copies_per_g + se_copies_per_g
+    ),
+    position = "dodge"
+  ) +
+  scale_fill_brewer(palette = "RdYlBu") +
+  scale_y_continuous(labels = scientific) +
+  facet_grid(
+    rows = vars(target_gene), 
+    scales = "free"
+  ) + 
+  theme_bw() + 
+  my_theme() +
+  theme(
+    #panel.grid = element_blank(),
+    legend.position = "none",
+    strip.text.y = element_text(face = "italic", size = 14),
+    aspect.ratio = 2,
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 13),
+    axis.text.y = element_text(size = 13),
+    axis.title.y = element_text(size = 16)
+  ) +
+  labs(
+    y = "Copies per g soil",
+    x = NULL
+  )
+
+#ggsave("~/Desktop/absolute_abundance_GR_bygene.png")
+
+```
+
+
+## Figure - stacked bars
+
+```{r}
+all_ddpcr_data %>% 
+  group_by(site, till, amend, landscape_position, target_gene) %>% 
+  summarise(
+    avg_copies_per_g = mean(copies_per_g, na.rm = TRUE),
+    se_copies_per_g = sd(copies_per_g, na.rm = TRUE) / sqrt(n()),
+  ) %>% 
+  filter(site == "GR") %>%
+  mutate(
+    across(
+      target_gene, 
+      ~factor(
+        ., 
+        levels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA"),
+        labels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA")
+      )
+    )
+  ) %>% 
+  left_join(errors, by = c("site", "till", "amend", "landscape_position")) %>% 
+  ggplot(aes(x = landscape_position, fill = target_gene)) + 
+  geom_col(aes(y = avg_copies_per_g), position = "stack", color = "black") +
+  geom_errorbar(
+    aes(y = sum_copies, ymin = sum_copies, ymax = sum_copies + sum_se)
+  ) +
+  scale_fill_brewer(palette = "RdYlBu") +
+  scale_y_continuous(labels = scientific) +
+  scale_x_discrete(
+    labels = c("C" = "Channel", "F" = "Footslope", "S" = "Shoulder")
+  ) +
+  theme_bw() + 
+  my_theme() +
+  theme(
+    aspect.ratio = 2,
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 13),
+    axis.text.y = element_text(size = 13),
+    axis.title.y = element_text(size = 16),
+    legend.text = element_text(size = 13)
+  ) +
+  labs(
+    y = "Copies per g soil",
+    x = NULL
+  )
+
+#ggsave("~/Desktop/GR_absolute_abundance_stacked.png")
+
+```
+
+
+
+# Absolute Abundance - Manure amendments at Carrington
+
+## Figure - stacked bars
+
+```{r}
+
+all_ddpcr_data %>% 
+  group_by(site, till, amend, landscape_position, target_gene) %>% 
+  summarise(
+    avg_copies_per_g = mean(copies_per_g, na.rm = TRUE),
+    se_copies_per_g = sd(copies_per_g, na.rm = TRUE) / sqrt(n()),
+  ) %>% 
+  filter(site == "CREC", till %in% c("CT", "NT")) %>%
+  mutate(
+    across(
+      target_gene, 
+      ~factor(
+        ., 
+        levels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA"),
+        labels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA")
+      )
+    )
+  ) %>% 
+  left_join(errors, by = c("site", "till", "amend", "landscape_position")) %>% 
+  #mutate(across(amend, ~factor(., levels = c("U", "A")))) %>% 
+  ggplot(aes(x = amend, fill = target_gene)) + 
+  geom_col(aes(y = avg_copies_per_g), position = "stack", color = "black") +
+  geom_errorbar(
+    aes(y = sum_copies, ymin = sum_copies, ymax = sum_copies + sum_se)
+  ) +
+  scale_fill_brewer(palette = "RdYlBu") +
+  scale_y_continuous(labels = scientific) +
+  facet_grid(
+    cols = vars(till), 
+    scales = "free", 
+    labeller = labeller(site = site_labels)
+  ) + 
+  theme_bw() + 
+  my_theme() +
+  theme(
+    aspect.ratio = 3
+  ) +
+  labs(
+    y = "Copies per g soil",
+    x = NULL
+  )
+
+
+#ggsave("~/Desktop/absolute_abundance_CREC_amend.png")
+
+```
+### Statistics
+
+#### Check normality
+```{r}
+total_anaerobe %>% 
+  filter(site == "CREC") %>% 
+  group_by(site, till, amend) %>% 
+  summarise(
+    normality_p = shapiro.test(anaerobe_copies_per_g)$p.value
+  ) %>% 
+  arrange(normality_p)
+```
+
+
+#### Test for equal variances
+
+```{r}
+
+leveneTest(
+  anaerobe_copies_per_g~amend*till,
+  data = total_anaerobe %>% filter(site == "CREC", till %in% c("CT", "NT"))
+)
+
+```
+
+#### test for differences in amended vs. unamended soils 
+Will use t-test for differences between amended and unamended
+
+*CT*
+```{r}
+t.test(
+  x = 
+    total_anaerobe %>% 
+    filter(site == "CREC", till == "CT", amend == "A") %>% 
+    pull(anaerobe_copies_per_g),
+  y = 
+    total_anaerobe %>% 
+    filter(site == "CREC", till == "CT", amend == "U") %>% 
+    pull(anaerobe_copies_per_g),
+  alternative = c("greater")
+)
+
+
+```
+
+*NT*
+```{r}
+t.test(
+  x = 
+    total_anaerobe %>% 
+    filter(site == "CREC", till == "NT", amend == "A") %>% 
+    pull(anaerobe_copies_per_g),
+  y = 
+    total_anaerobe %>% 
+    filter(site == "CREC", till == "NT", amend == "U") %>% 
+    pull(anaerobe_copies_per_g),
+  alternative = c("greater") #this really depends! 
+)
+```
+
+## Figure - faceted
+
+```{r}
+all_ddpcr_data %>% 
+  group_by(site, till, amend, landscape_position, target_gene) %>% 
+  summarise(
+    avg_copies_per_g = mean(copies_per_g, na.rm = TRUE),
+    se_copies_per_g = sd(copies_per_g, na.rm = TRUE) / sqrt(n())
+  ) %>% 
+  filter(site == "CREC", till %in% c("CT", "NT")) %>% 
+  mutate(
+    across(
+      target_gene, 
+      ~factor(
+        ., 
+        levels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA"),
+        labels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA")
+      )
+    )
+  ) %>% 
+  ggplot(aes(y = avg_copies_per_g, x = amend, fill = target_gene)) + 
+  geom_col(position = "dodge", color = "black") +
+  geom_errorbar(
+    aes(
+      ymin = avg_copies_per_g,
+      ymax = avg_copies_per_g + se_copies_per_g
+    ),
+    position = "dodge"
+  ) +
+  scale_fill_brewer(palette = "RdYlBu") +
+  scale_y_continuous(labels = scientific) +
+  facet_grid(
+    cols = vars(till), 
+    rows = vars(target_gene), 
+    scales = "free",
+    labeller = labeller(site = site_labels)
+  ) + 
+  theme_bw() + 
+  my_theme() +
+  theme(
+    aspect.ratio = 1,
+    legend.position = "none",
+    strip.text.y = element_text(face = "italic")
+  ) +
+  labs(
+    y = "Copies per g soil",
+    x = NULL
+  )
+
+#ggsave("~/Desktop/absolute_abundance_CREC_amend_facet.png")
+
+
+```
+
+### nirK
+
+*Normality:* Approximately normal
+
+```{r}
+all_ddpcr_data %>% 
+  filter(
+    site == "CREC", 
+    till %in% c("CT", "NT"), 
+    target_gene == "nirK"
+  ) %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(log(copies_per_g))$p.value
+  ) %>%
+  arrange(target_gene, normality_p)
+
+```
+
+#### CT
+
+*Variances*
+```{r}
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", target_gene == "nirK", till == "CT")
+) 
+
+```
+
+
+*Statistics*
+```{r}
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "CT", 
+      amend == "A", 
+      target_gene == "nirK"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "CT", 
+      amend == "U",
+      target_gene == "nirK"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("greater"),
+  var.equal = TRUE
+)
+```
+
+#### NT
+
+*Variances*
+```{r}
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", target_gene == "nirK", till == "NT")
+) 
+
+```
+
+
+*Statistics*
+```{r}
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "NT", 
+      amend == "A", 
+      target_gene == "nirK"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "NT", 
+      amend == "U",
+      target_gene == "nirK"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("greater"),
+  var.equal = TRUE
+)
+```
+
+### nirS
+*Normality*
+```{r}
+all_ddpcr_data %>% 
+  filter(
+    site == "CREC", 
+    till %in% c("CT", "NT"), 
+    target_gene == "nirS"
+  ) %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(target_gene, normality_p)
+
+```
+
+#### CT
+
+*Variances*
+
+```{r}
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", target_gene == "nirS", till == "CT")
+) 
+
+```
+
+
+*Statistics*
+
+```{r}
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "CT", 
+      amend == "A", 
+      target_gene == "nirS"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "CT", 
+      amend == "U",
+      target_gene == "nirS"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("greater"),
+  var.equal = FALSE
+)
+```
+
+#### NT
+
+*Variances*
+```{r}
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", target_gene == "nirS", till == "NT")
+) 
+
+```
+
+
+*Statistics*
+```{r}
+
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "NT", 
+      amend == "A", 
+      target_gene == "nirS"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "NT", 
+      amend == "U",
+      target_gene == "nirS"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("greater"),
+  var.equal = TRUE
+)
+```
+
+### gltA
+
+*Normality*
+```{r}
+all_ddpcr_data %>% 
+  filter(
+    site == "CREC", 
+    till %in% c("CT", "NT"), 
+    target_gene == "gltA"
+  ) %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(target_gene, normality_p)
+
+```
+
+#### CT
+
+*Variances*
+```{r}
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", target_gene == "gltA", till == "CT")
+) 
+
+```
+
+
+*Statistics*
+
+```{r}
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "CT", 
+      amend == "A", 
+      target_gene == "gltA"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "CT", 
+      amend == "U",
+      target_gene == "gltA"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("greater"),
+  var.equal = TRUE
+)
+```
+
+#### NT
+
+*Variances*
+
+```{r}
+
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", target_gene == "gltA", till == "NT")
+) 
+
+```
+
+
+*Statistics*
+```{r}
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "NT", 
+      amend == "A", 
+      target_gene == "gltA"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "NT", 
+      amend == "U",
+      target_gene == "gltA"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("greater"),
+  var.equal = TRUE
+)
+```
+
+### dsrAB
+
+*Normality: * normal
+```{r}
+all_ddpcr_data %>% 
+  filter(
+    site == "CREC", 
+    till %in% c("CT", "NT"), 
+    target_gene == "dsrAB"
+  ) %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(log(copies_per_g))$p.value
+  ) %>%
+  arrange(target_gene, normality_p)
+```
+
+#### CT
+
+*Variances*
+
+```{r}
+bartlett.test( 
+  log(copies_per_g) ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", target_gene == "dsrAB", till == "CT")
+) 
+```
+
+
+*Statistics*
+
+```{r}
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "CT", 
+      amend == "A", 
+      target_gene == "dsrAB"
+    ) %>% 
+    mutate(
+      log_copies_per_g = log(copies_per_g)
+    ) %>% 
+    pull(log_copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "CT", 
+      amend == "U",
+      target_gene == "dsrAB"
+    ) %>% 
+    mutate(
+      log_copies_per_g = log(copies_per_g)
+    ) %>% 
+    pull(log_copies_per_g),
+  alternative = c("greater"),
+  var.equal = TRUE
+)
+```
+
+#### NT
+
+*Variances*
+
+```{r}
+bartlett.test( 
+  log(copies_per_g) ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", target_gene == "dsrAB", till == "NT")
+) 
+
+```
+
+
+*Statistics*
+
+```{r}
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "NT", 
+      amend == "A", 
+      target_gene == "dsrAB"
+    ) %>% 
+    mutate(
+      log_copies_per_g = log(copies_per_g)
+    ) %>% 
+    pull(log_copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "NT", 
+      amend == "U",
+      target_gene == "dsrAB"
+    ) %>% 
+    mutate(
+      log_copies_per_g = log(copies_per_g)
+    ) %>% 
+    pull(log_copies_per_g),
+  alternative = c("greater"),
+  var.equal = TRUE
+)
+```
+
+### mcrA
+
+*Normality: * Approximately normal
+```{r}
+all_ddpcr_data %>% 
+  filter(
+    site == "CREC", 
+    till %in% c("CT", "NT"), 
+    target_gene == "mcrA"
+  ) %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(target_gene, normality_p)
+
+```
+#### CT
+
+*Variances:* unequal
+```{r}
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", target_gene == "mcrA", till == "CT")
+) 
+
+```
+
+*Statistics*
+```{r}
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "CT", 
+      amend == "A", 
+      target_gene == "mcrA"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "CT", 
+      amend == "U",
+      target_gene == "mcrA"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("greater"),
+  var.equal = FALSE
+)
+
+```
+
+#### NT
+
+*Variances*
+```{r}
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "CREC", target_gene == "mcrA", till == "NT")
+) 
+```
+
+*Statistics*
+
+```{r}
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "NT", 
+      amend == "A", 
+      target_gene == "mcrA"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "CREC", 
+      till == "NT", 
+      amend == "U",
+      target_gene == "mcrA"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("greater"),
+  var.equal = FALSE
+)
+```
+
+# Absolute abundance- poultry litter amendments @ Sand Mountain
+
+## Figure - stacked bar
+
+```{r}
+
+all_ddpcr_data %>% 
+  group_by(site, till, amend, landscape_position, target_gene) %>% 
+  summarise(
+    avg_copies_per_g = mean(copies_per_g, na.rm = TRUE),
+    se_copies_per_g = sd(copies_per_g, na.rm = TRUE) / sqrt(n()),
+  ) %>% 
+  filter(site == "SM", till %in% c("CT", "NT")) %>%
+  mutate(
+    across(
+      target_gene, 
+      ~factor(
+        ., 
+        levels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA"),
+        labels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA")
+      )
+    )
+  ) %>% 
+  left_join(errors, by = c("site", "till", "amend", "landscape_position")) %>% 
+  ggplot(aes(x = amend, fill = target_gene)) + 
+  geom_col(aes(y = avg_copies_per_g), position = "stack", color = "black") +
+  geom_errorbar(
+    aes(y = sum_copies, ymin = sum_copies, ymax = sum_copies + sum_se)
+  ) +
+  scale_fill_brewer(palette = "RdYlBu") +
+  scale_y_continuous(labels = scientific) +
+  facet_grid(
+    cols = vars(till), 
+    scales = "free", 
+    labeller = labeller(site = site_labels)
+  ) + 
+  theme_bw() + 
+  my_theme() +
+  theme(
+    aspect.ratio = 4
+  ) +
+  labs(
+    y = "Copies per g soil",
+    x = NULL
+  )
+
+#ggsave("~/Desktop/absolute_abundance_stacked_SM_amend.png")
+
+
+
+```
+
+
+### Statistics
+
+#### Check normality
+```{r}
+total_anaerobe %>% 
+  filter(site == "SM") %>% 
+  group_by(site, till, amend) %>% 
+  summarise(
+    normality_p = shapiro.test(anaerobe_copies_per_g)$p.value
+  ) %>% 
+  arrange(normality_p)
+```
+SM-NT-A is non-normal, non-amenable to transformations
+
+#### Test for equal variances
+
+```{r}
+
+leveneTest(
+  anaerobe_copies_per_g~amend*till,
+  data = total_anaerobe %>% filter(site == "SM", till %in% c("CT", "NT"))
+)
+
+```
+
+Equal variances
+
+#### test for differences in amended vs. unamended soils 
+Will use t-test for differences between amended and unamended
+
+*CT*
+```{r}
+t.test(
+  x = 
+    total_anaerobe %>% 
+    filter(site == "SM", till == "CT", amend == "A") %>% 
+    pull(anaerobe_copies_per_g),
+  y = 
+    total_anaerobe %>% 
+    filter(site == "SM", till == "CT", amend == "U") %>% 
+    pull(anaerobe_copies_per_g),
+  alternative = c("greater"),
+  var.equal = TRUE
+)
+
+
+```
+
+*NT*
+```{r}
+wilcox.test(
+  x = 
+    total_anaerobe %>% 
+    filter(site == "SM", till == "NT", amend == "A") %>% 
+    pull(anaerobe_copies_per_g),
+  y = 
+    total_anaerobe %>% 
+    filter(site == "SM", till == "NT", amend == "U") %>% 
+    pull(anaerobe_copies_per_g),
+  alternative = c("greater") #this really depends! 
+)
+
+
+```
+
+
+### Figure - faceted
+
+```{r}
+all_ddpcr_data %>% 
+  group_by(site, till, amend, landscape_position, target_gene) %>% 
+  summarise(
+    avg_copies_per_g = mean(copies_per_g, na.rm = TRUE),
+    se_copies_per_g = sd(copies_per_g, na.rm = TRUE) / sqrt(n())
+  ) %>% 
+  filter(site == "SM", till %in% c("CT", "NT")) %>% 
+  mutate(
+    across(
+      target_gene, 
+      ~factor(
+        ., 
+        levels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA"),
+        labels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA")
+      )
+    )
+  ) %>% 
+  ggplot(aes(y = avg_copies_per_g, x = amend, fill = target_gene)) + 
+  geom_col(position = "dodge", color = "black") +
+  geom_errorbar(
+    aes(
+      ymin = avg_copies_per_g,
+      ymax = avg_copies_per_g + se_copies_per_g
+    ),
+    position = "dodge"
+  ) +
+  scale_fill_brewer(palette = "RdYlBu") +
+  scale_y_continuous(labels = scientific) +
+  facet_grid(
+    cols = vars(till), 
+    rows = vars(target_gene), 
+    scales = "free",
+    labeller = labeller(site = site_labels)
+  ) + 
+  theme_bw() + 
+  my_theme() +
+  theme(
+    aspect.ratio = 1,
+    legend.position = "none",
+    strip.text.y = element_text(face = "italic")
+  ) +
+  labs(
+    y = "Copies per g soil",
+    x = NULL
+  )
+
+#ggsave("~/Desktop/absolute_abundance_facet_SM_amend.png")
+
+
+```
+
+#### Check Normality
+
+*All target genes*
+```{r}
+all_ddpcr_data %>% 
+  filter(
+    site == "SM", 
+    till %in% c("CT", "NT")
+  ) %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(copies_per_g)$p.value
+  ) %>%
+  arrange(target_gene, normality_p)
+
+```
+nirS appears non-normal for SM-CT-U
+
+*nirS*
+```{r}
+all_ddpcr_data %>% 
+  filter(
+    site == "SM", 
+    till %in% c("CT", "NT"), 
+    target_gene == "nirS"
+  ) %>%
+  group_by(site, till, amend, target_gene) %>% 
+  summarise(
+    normality_p = shapiro.test(log(copies_per_g))$p.value
+  ) %>%
+  arrange(target_gene, normality_p)
+
+```
+A log transform helps SM-CT-U nirK meet the assumptions of normality
+
+#### Check for equal variances 
+
+```{r}
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", target_gene == "mcrA", till == "CT")
+) 
+
+
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", target_gene == "mcrA", till == "NT")
+) 
+
+
+bartlett.test( 
+  log(copies_per_g) ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", target_gene == "dsrAB", till == "CT")
+) 
+
+
+bartlett.test( 
+  log(copies_per_g) ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", target_gene == "dsrAB", till == "NT")
+) 
+
+
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", target_gene == "gltA", till == "CT")
+) 
+
+
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", target_gene == "gltA", till == "NT")
+) 
+
+
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", target_gene == "nirS", till == "CT")
+) 
+
+
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", target_gene == "nirS", till == "NT")
+) 
+
+bartlett.test( 
+  log(copies_per_g) ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", target_gene == "nirK", till == "CT")
+) 
+
+
+bartlett.test( 
+  copies_per_g ~ amend,
+  data = 
+    all_ddpcr_data %>% 
+    filter(site == "SM", target_gene == "nirK", till == "NT")
+) 
+
+
+
+```
+
+Unequal variances:
+SM-CT dsrAB
+
+#### test for differences
+t-tests with equal variances (except in cases outlined above)
+Log-transform SM-CT nirK comparisons
+
+*mcrA*
+
+```{r}
+
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "CT", 
+      amend == "A", 
+      target_gene == "mcrA"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "CT", 
+      amend == "U",
+      target_gene == "mcrA"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("greater"),
+  var.equal = TRUE
+)
+
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "NT", 
+      amend == "A", 
+      target_gene == "mcrA"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "NT", 
+      amend == "U",
+      target_gene == "mcrA"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("two.sided"),
+  var.equal = TRUE
+)
+
+```
+
+*dsrAB*
+
+```{r}
+#log(copies_per_g)
+
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "CT", 
+      amend == "A", 
+      target_gene == "dsrAB"
+    ) %>% 
+    pull(copies_per_g) %>% log(),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "CT", 
+      amend == "U",
+      target_gene == "dsrAB"
+    ) %>% 
+    pull(copies_per_g) %>% log(),
+  alternative = c("two.sided"),
+  var.equal = FALSE
+)
+
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "NT", 
+      amend == "A", 
+      target_gene == "dsrAB"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "NT", 
+      amend == "U",
+      target_gene == "dsrAB"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("two.sided"),
+  var.equal = TRUE
+)
+```
+
+*gltA*
+
+```{r}
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "CT", 
+      amend == "A", 
+      target_gene == "dsrAB"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "CT", 
+      amend == "U",
+      target_gene == "gltA"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("two.sided"),
+  var.equal = FALSE
+)
+
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "NT", 
+      amend == "A", 
+      target_gene == "gltA"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "NT", 
+      amend == "U",
+      target_gene == "dsrAB"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("two.sided"),
+  var.equal = TRUE
+)
+```
+
+*nirS*
+
+```{r}
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "CT", 
+      amend == "A", 
+      target_gene == "nirS"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "CT", 
+      amend == "U",
+      target_gene == "nirS"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("two.sided"),
+  var.equal = TRUE
+)
+
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "NT", 
+      amend == "A", 
+      target_gene == "nirS"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "NT", 
+      amend == "U",
+      target_gene == "nirS"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("two.sided"),
+  var.equal = TRUE
+)
+
+```
+
+
+*nirK*
+```{r}
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "CT", 
+      amend == "A", 
+      target_gene == "nirK"
+    ) %>% 
+    mutate(
+      log_copies_per_g = log(copies_per_g)
+    ) %>% 
+    pull(log_copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "CT", 
+      amend == "U",
+      target_gene == "nirS"
+    ) %>% 
+    mutate(
+      log_copies_per_g = log(copies_per_g)
+    ) %>% 
+    pull(log_copies_per_g),
+  alternative = c("two.sided"),
+  var.equal = TRUE
+)
+
+t.test(
+  x = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "NT", 
+      amend == "A", 
+      target_gene == "nirK"
+    ) %>% 
+    pull(copies_per_g),
+  y = 
+    all_ddpcr_data %>% 
+    filter(
+      site == "SM", 
+      till == "NT", 
+      amend == "U",
+      target_gene == "nirK"
+    ) %>% 
+    pull(copies_per_g),
+  alternative = c("two.sided"),
+  var.equal = TRUE
+)
+```
+
+
+
+
+# Figures and Analysis - Relative Abundance 
+
+## Unamended, effect of tillage across sites
+
+```{r}
+prop_errors <-
+  all_ddpcr_data %>% 
+  group_by(site, till, amend, landscape_position, target_gene) %>% 
+  summarise(
+    avg_prop = mean(prop, na.rm = TRUE),
+    se_prop = sd(prop, na.rm = TRUE) / sqrt(n()),
+  ) %>% 
+  group_by(site, till, amend, landscape_position) %>% 
+  summarise(
+    sum_se = sum(se_prop, na.rm = TRUE),
+    sum_prop = sum(avg_prop, na.rm = TRUE),
+    count = n()
+  )
+
+prop_errors
+```
+
+### Figure - stacked bars 
+
+```{r}
+
+all_ddpcr_data %>% 
+  group_by(site, till, amend, landscape_position, target_gene) %>% 
+  summarise(
+    avg_prop = mean(prop, na.rm = TRUE),
+    se_prop = sd(prop, na.rm = TRUE) / sqrt(n())
+  ) %>% 
+  filter(site != "GR", amend == "U", till %in% c("CT", "NT", "UN")) %>% 
+  mutate(
+    across(
+      target_gene, 
+      ~factor(
+        ., 
+        levels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA"),
+        labels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA")
+      )
+    )
+  ) %>% 
+  ggplot(aes(x = till)) + 
+  geom_col(
+    aes(y = avg_prop, fill = target_gene), 
+    position = "stack", color = "black"
+  ) +
+  geom_errorbar(
+    aes(x = till, y = sum_prop, ymax = sum_prop + sum_se, ymin = sum_prop), 
+    data = prop_errors %>% 
+      filter(site != "GR", amend == "U", till %in% c("CT", "NT", "UN"))
+  ) +
+  scale_fill_brewer(palette = "RdYlBu") +
+  facet_grid(
+    cols = vars(site), 
+    scales = "free",
+    labeller = labeller(site = site_labels)
+  ) + 
+  theme_bw() + 
+  my_theme() +
+  theme(
+    aspect.ratio = 4,
+    strip.text.y = element_text(face = "italic")
+  ) +
+  labs(
+    y = "Proportion Anaerobe",
+    x = NULL
+  )
+
+#ggsave("~/Desktop/proportion_stacked.png")
+
+```
+
