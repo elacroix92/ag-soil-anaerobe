@@ -1,0 +1,924 @@
+---
+title: "Predict Anaerobe Abundance"
+author: "Emily Lacroix"
+date: "25 JAN 2023"
+output: 
+  github_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Set-up
+
+## Load libraries
+
+```{r message=FALSE}
+
+library(MASS)
+library(MuMIn)
+library(car)
+library(vegan)
+library(psych)
+library(Hmisc)
+library(readxl)
+library(lme4)
+library(outliers)
+library(tidyverse)
+
+conflicted::conflict_prefer("select", "dplyr")
+conflicted::conflict_prefer("filter", "dplyr")
+
+
+```
+
+## File names
+
+```{r eval=FALSE}
+
+all_data_excel <- "AllData_03AUG.xlsx"
+
+```
+
+```{r eval=TRUE, echo=FALSE}
+
+all_data_excel <- "/Users/elacroi3/Documents/Research/SHI/Data/DataCompilation/AllData_03AUG.xlsx"
+  
+
+```
+
+## Import
+```{r message=FALSE}
+
+mineral <- 
+  all_data_excel %>% 
+  read_xlsx(sheet = "mineral_protection") %>% 
+  select(sample, perc_clay) %>% 
+  separate(sample, into = c("site", "till", "amend", "rep")) %>% 
+  mutate(
+    landscape_position = if_else(site == "GR", amend, NA_character_),
+    across(amend, ~if_else(site == "GR", "U", .)),
+    across(rep, as.numeric)
+  )
+
+sixteenS_abund <-
+  all_data_excel %>% 
+  read_xlsx(sheet = "dna_ddpcr", na = "NA") %>% 
+  distinct(site, till, amend, landscape_position, rep, copies_per_g_sixteenS)
+
+anaerobe_copies_total <- 
+  all_data_excel %>% 
+  read_xlsx(sheet = "anaerobe_copies", na = "NA") %>% 
+  add_row( #adding blank rows for GR-NT-F for now
+    site = "GR",
+    till = "NT",
+    amend = "U",
+    landscape_position = "F",
+    rep = c(1,3),
+    anaerobe_copies_per_g = NA_real_
+  )
+
+climate <- 
+  all_data_excel %>% 
+  read_xlsx(sheet = "climate", na = "NA") %>% 
+  rename(rep = field_rep)
+
+
+root_mass_bd <-
+  all_data_excel %>% 
+  read_xlsx(sheet = "gravimetric", na = "NA") %>% 
+  mutate(
+    avg_plant_mass_per_cm3 = plant_mass_2_mm / volume_cm3
+  ) %>% 
+    group_by(site, till, amend, landscape_position, field_rep) %>% 
+    summarise(
+      avg_plant_mass_per_cm3 = mean(avg_plant_mass_per_cm3, na.rm = TRUE),
+      avg_bd = mean(bd, na.rm = TRUE)
+    ) %>% 
+  rename(rep = field_rep)
+
+
+c_n <- 
+  all_data_excel %>% 
+  read_xlsx(sheet = "c_n", na = "NA") %>%
+  rename(
+    amend = amend_pos,
+    rep = field_rep
+  ) %>% 
+  mutate(
+    landscape_position = if_else(site == "GR", amend, NA_character_),
+    across(amend, ~if_else(site == "GR", "U", .)),
+  )
+
+anaerobe_matrix <- #WO-UN-U-2 outlier already removed. 
+  all_data_excel %>% 
+  read_xlsx(sheet = "dna_ddpcr", na = "NA") %>% 
+  group_by(
+    site, till, amend, landscape_position, rep, target_gene
+  ) %>% 
+  summarise(
+    copies_per_g = mean(copies_per_g, na.rm = TRUE),
+    prop = mean(prop, na.rm = TRUE)
+  ) %>% 
+  pivot_wider(
+    id_cols = c(site, till, amend, landscape_position, rep),
+    names_from = target_gene,
+    values_from = c(copies_per_g, prop)
+  )
+
+aggregate_est <- 
+  all_data_excel %>% 
+  read_xlsx(sheet = "agg_est") %>% 
+  select(site, till, amend, landscape_position, rep, wsa_perc)
+
+```
+
+## Join it all together 
+
+```{r}
+
+all_data <- 
+  mineral %>% 
+  left_join(
+    sixteenS_abund, 
+    by = c("site", "till", "amend", "landscape_position", "rep")
+  ) %>% 
+  left_join(
+    anaerobe_copies_total,
+    by = c("site", "till", "amend", "landscape_position", "rep")
+  ) %>% 
+  left_join(
+    climate,
+    by = c("site", "till", "amend", "landscape_position", "rep")
+  ) %>% 
+  left_join(
+    root_mass_bd,
+    by = c("site", "till", "amend", "landscape_position", "rep")
+  ) %>% 
+  left_join(
+    c_n,
+    by = c("site", "till", "amend", "landscape_position", "rep")
+  ) %>% 
+  left_join(
+    anaerobe_matrix,
+    by = c("site", "till", "amend", "landscape_position", "rep")
+  ) %>% 
+  left_join(
+    aggregate_est,
+    by = c("site", "till", "amend", "landscape_position", "rep")  
+  ) %>% 
+  filter(!(site == "GR" & landscape_position == "F" & rep %in% c(1,3))) %>% 
+  rowid_to_column() %>% 
+  arrange(site, till, amend, landscape_position, rep) %>% 
+  ungroup() %>% 
+  select(-landscape_position) %>% 
+  na.omit() %>% 
+  mutate(
+    across(till, ~factor(., levels = c("UN", "NT", "MT", "CT"))),
+    across(amend, ~factor(., levels = c("U", "A"))),
+    sqrt_anaerobe_copies_per_g = sqrt(anaerobe_copies_per_g)
+  ) 
+
+```
+
+
+# All sites - predict anaerobe copy number
+
+## Backward selection, multiple linear regression
+
+```{r}
+multiple_reg_data <-
+  all_data %>% 
+  select(
+    -c(
+      site,
+      rowid, 
+      sample, 
+      starts_with("prop"),
+      copies_per_g_dsrAB,
+      copies_per_g_gltA,
+      copies_per_g_mcrA,
+      copies_per_g_nirK,
+      copies_per_g_nirS,
+      sqrt_anaerobe_copies_per_g,
+      # not considered in this dataset
+      gdd0,
+      gdd10, 
+      #everything below this comment was sequentially deleted based on VIF
+      mat_c,
+      map_mm,
+      precip_in_7, 
+      precip_in_14,
+      precip_in_10,
+      npoc_mg_c_g_soil,
+      perc_clay,
+      avg_perc_n
+
+      )
+  )
+
+# Fit the full model 
+full.model <- lm(anaerobe_copies_per_g ~., data = multiple_reg_data)
+
+# Stepwise regression model
+step.model <- stepAIC(full.model, direction = "backward", trace = FALSE)
+
+summary(step.model)
+
+vif(step.model)
+
+```
+
+
+## Variance partitioning: O2 supply and O2 demand
+
+### Check partitions for multi-collinearities
+
+Variables with VIF > 5 were eliminated stepwise, with the highest VIF variables being deleted in each iteration. 
+Deleted variables are left as comments in the script so users can easily reproduce process. 
+
+
+```{r}
+varpart_anaerobe_copies <- 
+      all_data %>% 
+      arrange(rowid) %>% 
+      select(-c(site, till, rep)) %>% 
+      na.omit() %>% 
+      pull(anaerobe_copies_per_g)
+
+varpart_site_data <- 
+  all_data %>% 
+  arrange(rowid) %>% 
+  select(
+    -c(
+      site, rep, sample, rowid
+    )
+  ) %>% 
+  na.omit() 
+```
+
+
+```{r}
+
+o2.supply.lm <- 
+  lm(
+    varpart_anaerobe_copies
+    ~ avg_bd + 
+      perc_clay +
+      wsa_perc +
+      mean_wfps,
+      #map_mm, 
+      #precip_in_7,
+    data = varpart_site_data
+  )
+
+summary(o2.supply.lm)
+
+vif(o2.supply.lm)
+
+```
+
+
+```{r}
+
+o2.demand.lm <- 
+  lm(
+    varpart_anaerobe_copies  ~ 
+      copies_per_g_sixteenS +
+      npoc_mg_c_g_soil +
+      #avg_perc_c +
+      mat_c +
+      avg_plant_mass_per_cm3,
+    data = varpart_site_data
+  )
+
+summary(o2.demand.lm)
+
+vif(o2.demand.lm)
+
+```
+
+
+### VarPart
+
+```{r}
+
+anaerobe_mod <-
+  varpart(
+    varpart_anaerobe_copies,
+    # Oxygen Demand - X1
+    ~ copies_per_g_sixteenS +
+      npoc_mg_c_g_soil +
+      mat_c +
+      avg_plant_mass_per_cm3,
+    # Oxygen Supply - X2
+    ~ avg_bd + 
+      perc_clay + 
+      wsa_perc +
+      mean_wfps,
+    data = 
+      varpart_site_data,
+    scale = FALSE 
+  )
+
+plot(anaerobe_mod)
+
+```
+
+## Variance Partitioning: O2 supply, O2 demand, management
+
+NOTE: the variable `till` represents both cultivation status and tillage practice.
+
+```{r}
+
+anaerobe_mod_mng <-
+  varpart(
+    varpart_anaerobe_copies,
+    # Oxygen Demand - X1
+    ~ copies_per_g_sixteenS +
+      npoc_mg_c_g_soil +
+      mat_c +
+      avg_plant_mass_per_cm3,
+    # Oxygen Supply - X2
+    ~ avg_bd + 
+      perc_clay + 
+      wsa_perc +
+      mean_wfps,
+    # Management - X3
+    ~ till + amend,
+    data = 
+      varpart_site_data,
+    scale = FALSE 
+  )
+
+plot(anaerobe_mod_mng)
+
+
+```
+
+
+### Significance testing - using RDA
+
+First, see what is testable
+
+```{r}
+anaerobe_mod_mng
+```
+
+
+#### Full model
+```{r}
+# RDA of full model, gives us the fractions of [a+b+c+d+e+f+g]
+rda.all <- 
+  rda(
+    varpart_anaerobe_copies ~ 
+      copies_per_g_sixteenS +
+      npoc_mg_c_g_soil +
+      avg_plant_mass_per_cm3 +
+      avg_bd + 
+      perc_clay + 
+      mean_wfps +
+      wsa_perc +
+      till + 
+      amend,
+    data = varpart_site_data,
+    scale = FALSE
+  )
+
+anova(rda.all)
+
+
+```
+
+
+#### Marginal effects
+
+O2 demand
+```{r}
+
+# RDA for O2 demand: a+d+f+g
+rda.o2.demand <- 
+    rda(
+      varpart_anaerobe_copies ~ 
+      copies_per_g_sixteenS +
+      npoc_mg_c_g_soil +
+      avg_plant_mass_per_cm3,
+    data = varpart_site_data,
+    scale = FALSE
+  )
+
+
+anova(rda.o2.demand)
+
+
+```
+
+O2 supply
+```{r}
+
+# RDA for O2 demand: b+d+g+e
+
+rda.o2.supply <- 
+    rda(
+      varpart_anaerobe_copies ~ 
+      avg_bd + 
+      perc_clay + 
+      wsa_perc +
+      mean_wfps, 
+    data = varpart_site_data,
+    scale = FALSE
+  )
+
+anova(rda.o2.supply)
+
+```
+
+
+Management
+```{r}
+
+#RDA for f+g+e+c
+
+rda.mng <- 
+    rda(
+      varpart_anaerobe_copies ~ 
+      till + amend,
+    data = varpart_site_data,
+    scale = FALSE
+  )
+
+anova(rda.mng)
+
+
+
+```
+
+#### Partial effects
+
+[X1] = o2 demand ALONE
+```{r}
+
+#[a]
+rda.o2.demand.part <- 
+  rda(
+      varpart_anaerobe_copies ~ 
+      copies_per_g_sixteenS +
+      npoc_mg_c_g_soil +
+      avg_plant_mass_per_cm3 + 
+      Condition(till + amend) + 
+      Condition(      
+          avg_bd + 
+          perc_clay + 
+          wsa_perc +
+          mean_wfps),
+    data = varpart_site_data,
+    scale = FALSE
+  )
+
+anova(rda.o2.demand.part)
+
+```
+
+
+[X2] supply alone
+
+```{r}
+rda.o2.supply.part <- 
+  rda(
+    varpart_anaerobe_copies ~ 
+      avg_bd + 
+      perc_clay + 
+      wsa_perc +
+      mean_wfps +
+      Condition(
+        copies_per_g_sixteenS +
+          npoc_mg_c_g_soil +
+          avg_plant_mass_per_cm3 
+      ) + 
+      Condition(till + amend),
+    data = varpart_site_data,
+    scale = FALSE
+  )
+
+anova(rda.o2.supply.part)
+```
+
+[X3] Management alone 
+```{r}
+rda.o2.mngmnt.part <- 
+  rda(
+    varpart_anaerobe_copies ~ 
+      till +
+      amend +
+      Condition(
+          avg_bd + 
+          perc_clay + 
+          wsa_perc +
+          mean_wfps 
+      ) +
+      Condition(
+        copies_per_g_sixteenS +
+          npoc_mg_c_g_soil +
+          avg_plant_mass_per_cm3 
+      ),
+    data = varpart_site_data,
+    scale = FALSE
+  )
+
+anova(rda.o2.mngmnt.part)
+```
+
+
+O2 demand AND management
+```{r}
+rda.o2.mngmnt.demand.part <- 
+  rda(
+    varpart_anaerobe_copies ~ 
+      till +
+      amend +
+      copies_per_g_sixteenS +
+      npoc_mg_c_g_soil +
+      avg_plant_mass_per_cm3 + 
+    Condition(
+      avg_bd + 
+        perc_clay + 
+        mean_wfps +
+        wsa_perc 
+    ),
+    data = varpart_site_data,
+    scale = FALSE
+  )
+
+
+anova(rda.o2.mngmnt.demand.part)
+
+
+```
+
+
+O2 supply AND management
+```{r}
+rda.o2.mngmnt.supp.part <- 
+  rda(
+    varpart_anaerobe_copies ~ 
+      till +
+      amend +
+      avg_bd + 
+      perc_clay + 
+      mean_wfps +
+      wsa_perc +
+      Condition(
+        copies_per_g_sixteenS +
+          npoc_mg_c_g_soil +
+          avg_perc_c +
+          mat_c +
+          avg_plant_mass_per_cm3 
+      ),
+    data = varpart_site_data,
+    scale = FALSE
+  )
+
+
+anova(rda.o2.mngmnt.supp.part)
+
+
+```
+
+# CREC only - predict anaerobe copy number
+
+## Backward selection, multiple linear regression
+
+NOTE: variables with VIF > 5 were eliminated
+```{r}
+multiple_reg_data_crec <-
+  all_data %>% 
+  filter(site == "CREC") %>% 
+  select(
+    -c(
+      site,
+      rowid, 
+      rep,
+      sample, 
+      starts_with("prop"),
+      copies_per_g_dsrAB,
+      copies_per_g_gltA,
+      copies_per_g_mcrA,
+      copies_per_g_nirK,
+      copies_per_g_nirS,
+      map_mm,
+      mat_c,
+      gdd0, #we do not include growing degree days in this dataset/analysis
+      gdd10, #we do not include growing degree days in this dataset/analysis
+      precip_in_7,
+      precip_in_14,
+      precip_in_10,
+      count, #removing variables that do not vary across CREC
+      sqrt_anaerobe_copies_per_g, #removing autocorrelated variable
+      #removing variables with high VIF
+      avg_bd, 
+      npoc_mg_c_g_soil,
+      avg_perc_c
+      )
+  ) 
+
+# Fit the full model 
+full.model.crec <- lm(anaerobe_copies_per_g ~., data = multiple_reg_data_crec)
+
+# Stepwise regression model
+step.model.crec <- stepAIC(full.model.crec, direction = "backward", trace = FALSE)
+
+summary(step.model.crec)
+
+vif(step.model.crec)
+
+
+```
+
+
+
+## Variance Partitioning - O2 Supply and Demand
+
+### Check partitions for multi-collinearities
+
+
+```{r}
+
+
+varpart_anaerobe_copies_crec <- 
+      all_data %>% 
+      filter(site == "CREC") %>% 
+      arrange(rowid) %>% 
+      select(-c(site, till, rep)) %>% 
+      na.omit() %>% 
+      pull(sqrt_anaerobe_copies_per_g)
+
+varpart_site_data_crec <- 
+  all_data %>% 
+  filter(site == "CREC") %>% 
+  arrange(rowid) %>% 
+  select(
+    -c(
+      site, rep, sample, rowid
+    )
+  ) %>% 
+  na.omit() 
+
+
+anaerobe_mod_crec <-
+  varpart(
+    varpart_anaerobe_copies_crec,
+    # Oxygen Demand - X1
+    ~ copies_per_g_sixteenS +
+      npoc_mg_c_g_soil +
+      avg_perc_c +
+      avg_plant_mass_per_cm3,
+    # Oxygen Supply - X2
+    ~ avg_bd + 
+      perc_clay + 
+      wsa_perc +
+      mean_wfps,
+    data = 
+      varpart_site_data_crec,
+    scale = FALSE 
+  )
+
+plot(anaerobe_mod_crec)
+```
+
+
+```{r}
+
+crec.o2.demand.lm <- 
+lm(varpart_anaerobe_copies_crec ~ 
+     copies_per_g_sixteenS +
+     npoc_mg_c_g_soil +
+     avg_perc_c +
+     avg_plant_mass_per_cm3,
+   data = varpart_site_data_crec
+)
+
+summary(crec.o2.demand.lm)
+
+vif(crec.o2.demand.lm)
+
+
+crec.o2.supply.lm <- 
+lm(varpart_anaerobe_copies_crec
+    ~ avg_bd + 
+      perc_clay + 
+      wsa_perc +
+      mean_wfps,
+   data = varpart_site_data_crec
+)
+
+summary(crec.o2.supply.lm)
+
+vif(crec.o2.supply.lm)
+```
+
+
+
+### VarPart
+```{r}
+
+```
+
+## Variance Partitioning: O2 supply, demand, and management
+
+```{r}
+
+anaerobe_mod_crec_mng <-
+  varpart(
+    varpart_anaerobe_copies_crec,
+    # Oxygen Demand - X1
+    ~ copies_per_g_sixteenS +
+      npoc_mg_c_g_soil +
+      avg_perc_c +
+      avg_plant_mass_per_cm3,
+    # Oxygen Supply - X2
+    ~ avg_bd + 
+      perc_clay + 
+      wsa_perc +
+      mean_wfps,
+    # Management - X3
+    ~ till + amend,
+    data = 
+      varpart_site_data_crec,
+    scale = FALSE 
+  )
+
+plot(anaerobe_mod_crec_mng)
+
+
+
+```
+
+
+### Significance testing using RDA
+```{r}
+# RDA of full model, gives us the fractions of [a+b+c+d+e+f+g]
+rda.all.crec <- 
+  rda(
+    varpart_anaerobe_copies_crec ~ 
+      copies_per_g_sixteenS +
+      npoc_mg_c_g_soil +
+      avg_perc_c +
+      avg_plant_mass_per_cm3 +
+      avg_bd + 
+      perc_clay +
+      wsa_perc +
+      mean_wfps +
+      till + 
+      amend,
+    data = varpart_site_data_crec,
+    scale = FALSE
+  )
+
+anova(rda.all.crec)
+
+
+```
+
+
+#### Marginal effects
+
+O2 demand
+```{r}
+# RDA for O2 demand: a+d+f+g
+rda.o2.demand.crec <- 
+    rda(
+      varpart_anaerobe_copies_crec ~ 
+      copies_per_g_sixteenS +
+      npoc_mg_c_g_soil +
+      avg_perc_c +
+      mat_c +
+      avg_plant_mass_per_cm3,
+    data = varpart_site_data_crec,
+    scale = FALSE
+  )
+
+
+anova(rda.o2.demand.crec)
+
+
+```
+
+O2 supply
+```{r}
+# RDA for O2 demand: b+d+g+e
+
+rda.o2.supply.crec <- 
+    rda(
+      varpart_anaerobe_copies_crec ~ 
+      avg_bd + 
+      perc_clay + 
+      wsa_perc +
+      mean_wfps,
+    data = varpart_site_data_crec,
+    scale = FALSE
+  )
+
+anova(rda.o2.supply.crec)
+
+```
+
+
+Management
+```{r}
+#RDA for f+g+e+c
+
+rda.mng.crec <- 
+    rda(
+      varpart_anaerobe_copies_crec ~ 
+      till + amend,
+    data = varpart_site_data_crec,
+    scale = FALSE
+  )
+
+anova(rda.mng.crec)
+
+```
+
+#### Partial effects
+
+[X1] = o2 demand ALONE
+```{r}
+
+#[a]
+rda.o2.demand.part.crec <- 
+  rda(
+      varpart_anaerobe_copies_crec ~ 
+      copies_per_g_sixteenS +
+      npoc_mg_c_g_soil +
+      avg_perc_c +
+      avg_plant_mass_per_cm3 + 
+      Condition(till + amend) + 
+      Condition(      
+          avg_bd + 
+          perc_clay + 
+          mean_wfps +
+          wsa_perc
+          ),
+    data = varpart_site_data_crec,
+    scale = FALSE
+  )
+
+anova(rda.o2.demand.part.crec)
+
+```
+
+
+[X2] supply alone
+
+```{r}
+rda.o2.supply.part.crec <- 
+  rda(
+    varpart_anaerobe_copies_crec ~ 
+      avg_bd + 
+      perc_clay + 
+      mean_wfps +
+      wsa_perc +
+      Condition(
+        copies_per_g_sixteenS +
+          npoc_mg_c_g_soil +
+          avg_perc_c +
+          mat_c +
+          avg_plant_mass_per_cm3 
+      ) + 
+      Condition(till + amend),
+    data = varpart_site_data_crec,
+    scale = FALSE
+  )
+
+anova(rda.o2.supply.part.crec)
+```
+
+[X3] Management alone 
+```{r}
+rda.o2.mngmnt.part.crec <- 
+  rda(
+    varpart_anaerobe_copies_crec ~ 
+      till +
+      amend +
+      Condition(
+          avg_bd + 
+          perc_clay + 
+          mean_wfps +
+          wsa_perc 
+      ) +
+      Condition(
+        copies_per_g_sixteenS +
+          npoc_mg_c_g_soil +
+          avg_perc_c +
+          mat_c +
+          avg_plant_mass_per_cm3 
+      ),
+    data = varpart_site_data_crec,
+    scale = FALSE
+  )
+
+anova(rda.o2.mngmnt.part.crec)
+```
+

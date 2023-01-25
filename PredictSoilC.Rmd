@@ -1,0 +1,926 @@
+---
+title: "PredictSoilC"
+author: "Emily Lacroix"
+date: "25 JAN 2023"
+output: 
+  github_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Set-up
+
+## Load libraries
+
+```{r message=FALSE}
+
+library(MASS)
+library(MuMIn)
+library(car)
+library(vegan)
+library(psych)
+library(readxl)
+library(lmerTest)
+library(nlme)
+library(outliers)
+library(tidyverse)
+
+conflicted::conflict_prefer("select", "dplyr")
+conflicted::conflict_prefer("filter", "dplyr")
+
+
+```
+## Figure theme
+```{r}
+my_theme <- function(base_size = 13, base_family = ""){ ## Control base font face and size. use `rel()` for relative font size.
+  theme_bw(base_size = base_size, base_family = base_family) %+replace%
+    theme(
+      panel.border = element_rect(colour = "black", fill = "transparent"),
+      panel.background  = element_blank(),
+      panel.grid = element_blank(),
+      strip.background = element_blank(),
+      strip.text = element_text(size = 11),
+      strip.text.y = element_text(size = 11)
+    )
+}
+
+```
+
+
+## Labels
+```{r}
+
+site_labels <- 
+  c(
+    "CREC" = "Carrington, ND",
+    "GR" = "Novelty, MO",
+    "SM" = "Crossville, AL",
+    "WO" = "Wooster, OH"
+  )
+
+till_labels <- 
+  c(
+    "UN" = "Uncultivated",
+    "NT" = "No-till",
+    "MT" = "Minimum till",
+    "CT" = "Conventional till"
+  )
+
+```
+
+## File names
+
+```{r eval=FALSE}
+
+all_data_excel <- "AllData_03AUG.xlsx"
+
+```
+
+```{r eval=TRUE, echo=FALSE}
+
+all_data_excel <- "/Users/elacroi3/Documents/Research/SHI/Data/DataCompilation/AllData_03AUG.xlsx"
+
+```
+
+## Import
+```{r message=FALSE}
+
+mineral <- 
+  all_data_excel %>% 
+  read_xlsx(sheet = "mineral_protection") %>% 
+  select(-c(ssa_analysis_date)) %>% 
+  separate(sample, into = c("site", "till", "amend", "rep")) %>% 
+  mutate(
+    landscape_position = if_else(site == "GR", amend, NA_character_),
+    across(amend, ~if_else(site == "GR", "U", .)),
+    across(rep, as.numeric)
+  )
+
+sixteenS_abund <-
+  all_data_excel %>% 
+  read_xlsx(sheet = "dna_ddpcr", na = "NA") %>% 
+  distinct(site, till, amend, landscape_position, rep, copies_per_g_sixteenS)
+
+anaerobe_copies_total <- 
+  all_data_excel %>% 
+  read_xlsx(sheet = "anaerobe_copies", na = "NA") %>% 
+  add_row( #adding blank rows for GR-NT-F for now
+    site = "GR",
+    till = "NT",
+    amend = "U",
+    landscape_position = "F",
+    rep = c(1,3),
+    anaerobe_copies_per_g = NA_real_
+  )
+
+climate <- 
+  all_data_excel %>% 
+  read_xlsx(sheet = "climate", na = "NA") %>% 
+  rename(rep = field_rep)
+
+
+root_mass_bd <-
+  all_data_excel %>% 
+  read_xlsx(sheet = "gravimetric", na = "NA") %>% 
+  mutate(
+    avg_plant_mass_per_cm3 = plant_mass_2_mm / volume_cm3
+  ) %>% 
+    group_by(site, till, amend, landscape_position, field_rep) %>% 
+    summarise(
+      avg_plant_mass_per_cm3 = mean(avg_plant_mass_per_cm3, na.rm = TRUE),
+      avg_bd = mean(bd, na.rm = TRUE)
+    ) %>% 
+  rename(rep = field_rep)
+
+
+c_n <- 
+  all_data_excel %>% 
+  read_xlsx(sheet = "c_n", na = "NA") %>%
+  rename(
+    amend = amend_pos,
+    rep = field_rep
+  ) %>% 
+  mutate(
+    landscape_position = if_else(site == "GR", amend, NA_character_),
+    across(amend, ~if_else(site == "GR", "U", .)),
+  )
+
+
+anaerobe_matrix <- 
+  all_data_excel %>% 
+  read_xlsx(sheet = "dna_ddpcr", na = "NA") %>% 
+  group_by(
+    site, till, amend, landscape_position, rep, target_gene
+  ) %>% 
+  summarise(
+    copies_per_g = mean(copies_per_g, na.rm = TRUE),
+    prop = mean(prop, na.rm = TRUE)
+  ) %>% 
+  pivot_wider(
+    id_cols = c(site, till, amend, landscape_position, rep),
+    names_from = target_gene,
+    values_from = c(copies_per_g, prop)
+  )
+
+aggregate_est <- 
+  all_data_excel %>% 
+  read_xlsx(sheet = "agg_est") %>% 
+  select(site, till, amend, landscape_position, rep, wsa_perc)
+
+
+```
+
+## Check for outliers in anaerobe data
+```{r}
+outliers <- grubbs.test(anaerobe_copies_total$anaerobe_copies_per_g)
+
+outliers
+
+outliers_low <- grubbs.test(anaerobe_copies_total$anaerobe_copies_per_g, opposite = TRUE)
+
+outliers_low
+```
+
+## Join it all together 
+
+This data:
+
+* combines all of the imported data
+* removes the WO-UN-U-2 outlier (which was also removed from `ddPCR.Rmd`)
+* removes GR samples that have incomplete anaerobe abundances due to droplet generation errors for select genes
+
+```{r}
+
+all_data <- 
+  mineral %>% 
+  left_join(
+    sixteenS_abund, 
+    by = c("site", "till", "amend", "landscape_position", "rep")
+  ) %>% 
+  left_join(
+    anaerobe_copies_total,
+    by = c("site", "till", "amend", "landscape_position", "rep")
+  ) %>% 
+  left_join(
+    climate,
+    by = c("site", "till", "amend", "landscape_position", "rep")
+  ) %>% 
+  left_join(
+    root_mass_bd,
+    by = c("site", "till", "amend", "landscape_position", "rep")
+  ) %>% 
+  left_join(
+    c_n,
+    by = c("site", "till", "amend", "landscape_position", "rep")
+  ) %>% 
+  left_join(
+    anaerobe_matrix,
+    by = c("site", "till", "amend", "landscape_position", "rep")
+  ) %>% 
+  left_join(
+    aggregate_est,
+    by = c("site", "till", "amend", "landscape_position", "rep")  
+  ) %>% 
+  filter(!(site == "GR" & landscape_position == "F" & rep %in% c(1,3))) %>% 
+  rowid_to_column() %>% 
+  arrange(site, till, amend, landscape_position, rep) %>% 
+  ungroup() %>% 
+  select(-landscape_position) %>% 
+  na.omit() %>% 
+  mutate(
+    across(till, ~factor(., levels = c("UN", "NT", "MT", "CT"))),
+    across(amend, ~factor(., levels = c("U", "A"))),
+  ) %>%
+  filter(
+    sample != "WO-UN-U-2"
+  )
+
+```
+
+# Supp Table: Soil Properties
+
+```{r message=FALSE}
+
+soil_properties <-
+  all_data %>% 
+  group_by(site, till, amend) %>% 
+  summarise(
+    across(
+      c(
+        avg_bd, 
+        avg_perc_c, 
+        avg_perc_n, 
+        avg_plant_mass_per_cm3, 
+        perc_clay, 
+        ssa_m2_g, 
+        sro_mmol_kg, 
+        npoc_mg_c_g_soil, 
+        plant_avail_n_ppm, 
+        wsa_perc
+      ),
+      list(mean = mean, se = ~sd(.)/sqrt(n()))
+    )
+  )
+
+```
+
+
+# Regression
+
+## All sites
+
+```{r}
+
+multiple_reg_data_c <-
+  all_data %>% 
+  mutate(
+    cultivated = if_else(till == "UN", 0, 1),
+    amended = if_else(amend == "A", 1, 0),
+    red_no_till = if_else(till %in% c("NT", "MT"), 1, 0),
+  ) %>% 
+  select(
+    -c(
+      rowid, 
+      sample, 
+      amend,
+      starts_with("prop"),
+      copies_per_g_dsrAB,
+      copies_per_g_gltA,
+      copies_per_g_mcrA,
+      copies_per_g_nirK,
+      copies_per_g_nirS,
+      soil_order,
+      rep,
+      count,
+      gdd0,
+      gdd10,
+      precip_in_7,
+      precip_in_14,
+      precip_in_10,
+      al_mmol_kg,
+      fe_mmol_kg,
+      mn_mmol_kg,
+      plant_avail_n_ppm,
+      npoc_mg_c_g_soil,
+      avg_perc_n, #just playing around with removal
+      map_mm, #removed after inspecting for VIF > 5
+      mean_wfps  #removed after inspecting for VIF > 5
+      )
+  )
+
+multiple_reg_data_c
+
+```
+
+
+### Simple linear regression, anaerobe copies vs. C
+
+```{r}
+anaerobe_c <- lm(avg_perc_c ~ anaerobe_copies_per_g, data = multiple_reg_data_c)
+
+
+summary(anaerobe_c)
+```
+
+
+```{r message=FALSE}
+
+all_data %>% 
+  mutate(
+    across(till, ~factor(., labels = till_labels)),
+    across(site, ~factor(., labels = site_labels))
+  ) %>% 
+  ggplot(aes(x = anaerobe_copies_per_g, y = avg_perc_c)) + 
+  geom_smooth(method = "lm", se = FALSE, color = "darkgray", linetype = 1) +
+  geom_point(aes(color = site, shape = till), size = 4) +
+  scale_color_brewer(palette = "RdYlBu") +
+  my_theme() + 
+  theme(
+    aspect.ratio = 1,
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+    axis.title.x = element_text(margin = margin(t = 8), size = 14),
+    axis.title.y = element_text(margin = margin(r = 12), size = 14),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    legend.position = "top",
+    legend.box = "vertical"
+  ) +
+  labs(
+    y = "Total Organic Carbon (%)",
+    x = "Anaerobe copies per g dry soil",
+    shape = "Agricultural Use and Till",
+    color = "Site"
+  )
+
+
+```
+
+### Mixed-effects model 
+
+```{r}
+
+anaerobe_c_mixed_effects <-   
+  lme(avg_perc_c ~ anaerobe_copies_per_g, 
+      random = ~1|site, 
+      data = multiple_reg_data_c
+  )
+
+anova(anaerobe_c_mixed_effects)
+r.squaredGLMM(anaerobe_c_mixed_effects)
+
+```
+
+## Individual sites
+
+### Check for outliers in individual site sets
+
+```{r}
+
+crec_data <- 
+  all_data %>% 
+  filter(site == "CREC")
+
+grubbs.test(crec_data$anaerobe_copies_per_g)
+grubbs.test(crec_data$avg_perc_c)
+
+wo_data <- 
+  all_data %>% 
+  filter(site == "WO")
+
+grubbs.test(wo_data$anaerobe_copies_per_g)
+grubbs.test(wo_data$avg_perc_c)
+
+
+gr_data <- 
+  all_data %>% 
+  filter(site == "GR")
+
+grubbs.test(gr_data$anaerobe_copies_per_g)
+grubbs.test(gr_data$avg_perc_c)
+
+sm_data <- 
+  all_data %>% 
+  filter(site == "SM")
+
+grubbs.test(sm_data$anaerobe_copies_per_g)
+grubbs.test(sm_data$avg_perc_c)
+
+
+```
+
+```{r}
+sm_data_no_outliers <-
+  sm_data %>% 
+  filter(!(till == "UN" & rep == 3))
+
+
+grubbs.test(sm_data_no_outliers$anaerobe_copies_per_g)
+grubbs.test(sm_data_no_outliers$avg_perc_c)
+
+```
+
+### regressions WITH outlier in SM
+
+```{r message=FALSE}
+all_data %>% 
+  mutate(
+    across(till, ~factor(., labels = till_labels)),
+    across(site, ~factor(., labels = site_labels))
+  ) %>% 
+  ggplot(aes(x = anaerobe_copies_per_g, y = avg_perc_c)) + 
+  geom_smooth(method = "lm", se = FALSE, color = "darkgray", linetype = 1) +
+  geom_point(aes(color = site, shape = till), size = 4) +
+  scale_color_brewer(palette = "RdYlBu") +
+  facet_wrap(facets = vars(site), scales = "free") +
+  my_theme() + 
+  theme(
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(margin = margin(t = 8), size = 16),
+    axis.title.y = element_text(margin = margin(r = 12), size = 16),
+    strip.text = element_text(size = 16),
+    legend.position = "none",
+    aspect.ratio = 1,
+    
+  ) +
+  labs(
+    y = "Total Organic Carbon (%)",
+    x = "Anaerobe copies per g dry soil",
+    shape = "Agricultural Use and Till",
+    color = "Site"
+  )
+
+```
+
+
+```{r}
+anaerobe_c_crec <- 
+  lm(
+    avg_perc_c ~ anaerobe_copies_per_g, 
+    data = all_data %>% filter(site == "CREC")
+  )
+
+anaerobe_c_wo <-
+    lm(
+    avg_perc_c ~ anaerobe_copies_per_g, 
+    data = all_data %>% filter(site == "WO")
+  )
+
+anaerobe_c_gr <- 
+    lm(
+    avg_perc_c ~ anaerobe_copies_per_g, 
+    data = all_data %>% filter(site == "GR")
+  )
+
+anaerobe_c_sm <-
+    lm(
+    avg_perc_c ~ anaerobe_copies_per_g, 
+    data = all_data %>% filter(site == "SM" )
+  )
+
+summary(anaerobe_c_crec)
+summary(anaerobe_c_wo)
+summary(anaerobe_c_gr)
+summary(anaerobe_c_sm)
+
+
+```
+
+### regressions WITHOUT outlier in SM
+
+```{r message=FALSE}
+
+all_data %>% 
+  filter(!(till == "UN" & rep == 3)) %>% 
+  mutate(
+    across(till, ~factor(., labels = till_labels)),
+    across(site, ~factor(., labels = site_labels))
+  ) %>% 
+  ggplot(aes(x = anaerobe_copies_per_g, y = avg_perc_c)) + 
+  geom_smooth(method = "lm", se = FALSE, color = "darkgray", linetype = 1) +
+  geom_point(aes(color = site, shape = till), size = 4) +
+  scale_color_brewer(palette = "RdYlBu") +
+  facet_wrap(facets = vars(site), scales = "free") +
+  my_theme() + 
+  theme(
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    axis.title.x = element_text(margin = margin(t = 8), size = 16),
+    axis.title.y = element_text(margin = margin(r = 12), size = 16),
+    strip.text = element_text(size = 16),
+    legend.position = "none",
+    aspect.ratio = 1
+  ) +
+  labs(
+    y = "Total Organic Carbon (%)",
+    x = "Anaerobe copies per g dry soil",
+    shape = "Agricultural Use and Till",
+    color = "Site"
+  )
+
+```
+
+
+```{r}
+
+anaerobe_c_sm_no_outlier <-
+    lm(
+    avg_perc_c ~ anaerobe_copies_per_g, 
+    data = 
+      all_data %>% 
+      filter(site == "SM") %>% 
+      filter(!(till == "UN" & rep == 3))
+  )
+
+anaerobe_c_sm_no_outlier %>% summary()
+
+```
+
+## Stepwise
+
+```{r}
+# Fit the full model 
+full.model <- lm(avg_perc_c ~., data = multiple_reg_data_c %>% select(-c(site, cultivated)))
+
+# Stepwise regression model
+step.model <- stepAIC(full.model, direction = "backward", trace = FALSE)
+
+summary(step.model)
+
+vif(step.model)
+
+```
+
+
+# Variance Partioning
+
+## All sites
+
+```{r}
+varpart_perc_c <- 
+      all_data %>% 
+      arrange(rowid) %>% 
+      select(-c(site, till, rep)) %>% 
+      na.omit() %>% 
+      pull(avg_perc_c)
+
+varpart_data_perc_c <- 
+  all_data %>% 
+  arrange(rowid) %>% 
+  mutate(
+    cultivated = if_else(till == "UN", 0, 1),
+    amended = if_else(amend == "A", 1, 0),
+    red_no_till = if_else(till %in% c("NT", "MT"), 1, 0),
+  ) %>% 
+  select(
+    -c(
+      site, rep, sample, rowid, soil_order, amend
+    )
+  ) %>% 
+  na.omit() 
+
+```
+
+
+### Check VIF
+
+NOTE: highly co-linear variables have already been removed. 
+
+```{r}
+
+mineral.prot.lm <- 
+  lm(
+    varpart_perc_c
+    ~ ssa_m2_g + 
+      sro_mmol_kg,
+    data = varpart_data_perc_c
+  )
+
+summary(mineral.prot.lm)
+
+vif(mineral.prot.lm) 
+
+
+```
+
+```{r}
+
+phys.prot.lm <- 
+  lm(
+    varpart_perc_c
+    ~  till + 
+      wsa_perc,
+    data = varpart_data_perc_c
+  )
+
+summary(phys.prot.lm)
+
+vif(phys.prot.lm) 
+
+
+```
+
+
+
+```{r}
+
+climate.lm <-
+  lm(
+    varpart_perc_c
+    ~ map_mm,
+    data = varpart_data_perc_c
+  )
+
+summary(climate.lm)
+
+
+
+```
+
+
+```{r}
+anaerobe.lm <-
+  lm(
+    varpart_perc_c
+    ~ anaerobe_copies_per_g,
+    #
+    data = varpart_data_perc_c
+  )
+
+summary(anaerobe.lm)
+
+
+```
+
+### Partition Variance
+
+```{r}
+
+total_c_mod <-
+  varpart(
+    varpart_perc_c,
+    # Mineral protection - X1
+    ~ ssa_m2_g + 
+      sro_mmol_kg,
+    # Physical Protection - X2
+    ~ wsa_perc + till,
+    # Climate - X3
+    ~ map_mm,
+    #Anaerobes - X4
+    ~ anaerobe_copies_per_g,
+    data = 
+      varpart_data_perc_c,
+    scale = FALSE 
+  )
+
+plot(
+  total_c_mod,
+  Xnames = c("Mineral", "Ag Use + Till", "Climate", "Anoxic"),
+  id.size = 0.80
+) 
+
+```
+
+### Test significance
+
+```{r}
+showvarparts(4)
+```
+
+
+## Cultivated only 
+
+```{r}
+varpart_perc_c_cult <- 
+      all_data %>% 
+      arrange(rowid) %>% 
+      filter(till != "UN") %>% 
+      select(-c(site, till, rep)) %>% 
+      na.omit() %>% 
+      pull(avg_perc_c)
+
+varpart_data_perc_c_cult <- 
+  all_data %>% 
+  arrange(rowid) %>%
+  filter(till != "UN") %>% 
+  mutate(
+    cultivated = if_else(till == "UN", 0, 1),
+    amended = if_else(amend == "A", 1, 0),
+    red_no_till = if_else(till %in% c("NT", "MT"), 1, 0),
+  ) %>% 
+  select(
+    -c(
+      site, rep, sample, rowid, soil_order, amend
+    )
+  ) %>% 
+  na.omit() 
+```
+
+### Check VIF
+
+```{r}
+
+mineral.prot.lm.cult <- 
+  lm(
+    varpart_perc_c_cult
+    ~ ssa_m2_g + 
+      sro_mmol_kg,
+    data = varpart_data_perc_c_cult
+  )
+
+summary(mineral.prot.lm.cult)
+
+vif(mineral.prot.lm.cult) 
+
+```
+
+```{r}
+
+phys.prot.lm.cult <- 
+  lm(
+    varpart_perc_c_cult
+    ~ till + 
+      wsa_perc,
+    data = varpart_data_perc_c_cult
+  )
+
+summary(phys.prot.lm.cult)
+
+vif(phys.prot.lm.cult) 
+
+
+```
+
+
+```{r}
+
+climate.lm.cult <-
+  lm(
+    varpart_perc_c_cult
+    ~ map_mm,
+    #
+    data = varpart_data_perc_c_cult
+  )
+
+summary(climate.lm.cult)
+
+
+
+```
+
+
+```{r}
+anaerobe.lm.cult <-
+  lm(
+    varpart_perc_c_cult
+    ~ anaerobe_copies_per_g,
+    data = varpart_data_perc_c_cult
+  )
+
+summary(anaerobe.lm.cult)
+
+
+```
+
+### Partition Variance
+
+```{r}
+total_c_mod_cult <-
+  varpart(
+    varpart_perc_c_cult,
+    # Mineral protection - X1
+    ~ ssa_m2_g + 
+      sro_mmol_kg,
+    # Physical Protection - X2
+    ~ wsa_perc + till,
+    #X3 - Climate
+    ~ map_mm,
+    #Anaerobes - X4
+    ~ anaerobe_copies_per_g,
+    data = 
+      varpart_data_perc_c_cult,
+    scale = FALSE 
+  )
+
+plot(
+  total_c_mod_cult,
+  Xnames = c("Mineral", "Physical", "Climate", "Anoxic"),
+  id.size = 0.8
+) 
+
+```
+
+### Test Significance
+
+What is testable?
+
+```{r}
+
+total_c_mod_cult
+
+```
+
+Is overall fit significant?
+
+```{r}
+rda.overall <- 
+  rda(
+    varpart_perc_c_cult ~ 
+      ssa_m2_g + 
+      sro_mmol_kg + 
+      wsa_perc + 
+      red_no_till +
+      map_mm + 
+      anaerobe_copies_per_g,
+    data = 
+      varpart_data_perc_c_cult,
+    scale = FALSE 
+  )
+
+anova(rda.overall)
+  
+```
+
+#### Significance tests for unique variance
+
+Test whether the UNIQUE variance explained by each factor is significant
+
+**Mineral**
+
+```{r}
+
+rda.mineral.part <- 
+  rda(
+      varpart_perc_c_cult ~ 
+      ssa_m2_g +
+      sro_mmol_kg +
+      Condition(wsa_perc + till) + 
+      Condition(map_mm) + 
+      Condition(anaerobe_copies_per_g),
+    data = varpart_data_perc_c_cult,
+    scale = FALSE
+  )
+
+anova(rda.mineral.part)
+
+
+```
+
+**Physical**
+
+```{r}
+
+rda.phys.part <- 
+  rda(
+      varpart_perc_c_cult ~ wsa_perc + till +
+      Condition(ssa_m2_g + sro_mmol_kg) +
+      Condition(map_mm) + 
+      Condition(anaerobe_copies_per_g),
+    data = varpart_data_perc_c_cult,
+    scale = FALSE
+  )
+
+anova(rda.phys.part)
+
+```
+
+**Climate**
+```{r}
+
+rda.climate.part <- 
+  rda(
+      varpart_perc_c_cult ~ map_mm + 
+      Condition(wsa_perc + till) +
+      Condition(ssa_m2_g + sro_mmol_kg) +
+      Condition(anaerobe_copies_per_g),
+    data = varpart_data_perc_c_cult,
+    scale = FALSE
+  )
+
+anova(rda.climate.part)
+
+```
+
+
+**Anoxic**
+
+```{r}
+
+rda.anoxic.part <- 
+  rda(
+      varpart_perc_c_cult ~ anaerobe_copies_per_g +
+      Condition(map_mm) + 
+      Condition(wsa_perc + till) +
+      Condition(ssa_m2_g + sro_mmol_kg),
+    data = varpart_data_perc_c_cult,
+    scale = FALSE
+  )
+
+anova(rda.anoxic.part)
+
+
+```
+
