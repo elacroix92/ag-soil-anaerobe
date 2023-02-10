@@ -368,7 +368,10 @@ anaerobe_c_mixed_effects <-
       data = multiple_reg_data_c
   )
 
-anova(anaerobe_c_mixed_effects)
+summary_mixed_effects <- anaerobe_c_mixed_effects %>% summary()
+
+summary_mixed_effects$tTable
+
 r.squaredGLMM(anaerobe_c_mixed_effects)
 
 ```

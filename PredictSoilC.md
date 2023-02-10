@@ -439,12 +439,14 @@ anaerobe_c_mixed_effects <-
       data = multiple_reg_data_c
   )
 
-anova(anaerobe_c_mixed_effects)
+summary_mixed_effects <- anaerobe_c_mixed_effects %>% summary()
+
+summary_mixed_effects$tTable
 ```
 
-    ##                       numDF denDF  F-value p-value
-    ## (Intercept)               1    42 19.73028   1e-04
-    ## anaerobe_copies_per_g     1    42 27.11710  <.0001
+    ##                              Value    Std.Error DF  t-value      p-value
+    ## (Intercept)           6.222237e-01 4.407813e-01 42 1.411638 1.654224e-01
+    ## anaerobe_copies_per_g 1.459164e-08 2.802092e-09 42 5.207409 5.415794e-06
 
 ``` r
 r.squaredGLMM(anaerobe_c_mixed_effects)
@@ -1424,7 +1426,7 @@ anova(rda.mineral.part)
     ## 
     ## Model: rda(formula = varpart_perc_c_cult ~ ssa_m2_g + sro_mmol_kg + Condition(wsa_perc + till) + Condition(map_mm) + Condition(anaerobe_copies_per_g), data = varpart_data_perc_c_cult, scale = FALSE)
     ##          Df Variance      F Pr(>F)  
-    ## Model     2 0.018437 2.6104  0.096 .
+    ## Model     2 0.018437 2.6104  0.093 .
     ## Residual 31 0.109477                
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -1451,7 +1453,7 @@ anova(rda.phys.part)
     ## 
     ## Model: rda(formula = varpart_perc_c_cult ~ wsa_perc + till + Condition(ssa_m2_g + sro_mmol_kg) + Condition(map_mm) + Condition(anaerobe_copies_per_g), data = varpart_data_perc_c_cult, scale = FALSE)
     ##          Df Variance      F Pr(>F)
-    ## Model     3 0.021018 1.9838  0.145
+    ## Model     3 0.021018 1.9838  0.116
     ## Residual 31 0.109477
 
 **Climate**
@@ -1503,7 +1505,7 @@ anova(rda.anoxic.part)
     ## 
     ## Model: rda(formula = varpart_perc_c_cult ~ anaerobe_copies_per_g + Condition(map_mm) + Condition(wsa_perc + till) + Condition(ssa_m2_g + sro_mmol_kg), data = varpart_data_perc_c_cult, scale = FALSE)
     ##          Df Variance      F Pr(>F)  
-    ## Model     1 0.023027 6.5204  0.019 *
+    ## Model     1 0.023027 6.5204  0.016 *
     ## Residual 31 0.109477                
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
