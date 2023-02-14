@@ -63,6 +63,7 @@ Emily Lacroix
   Abundance - Manure amendments at Carrington</a>
   - <a href="#figure---stacked-bars-2"
     id="toc-figure---stacked-bars-2">Figure - stacked bars</a>
+    - <a href="#statistics" id="toc-statistics">Statistics</a>
   - <a href="#figure---faceted-3" id="toc-figure---faceted-3">Figure -
     faceted</a>
     - <a href="#nirk-1" id="toc-nirk-1">nirK</a>
@@ -75,7 +76,7 @@ Emily Lacroix
   abundance- poultry litter amendments @ Sand Mountain</a>
   - <a href="#figure---stacked-bar-1" id="toc-figure---stacked-bar-1">Figure
     - stacked bar</a>
-    - <a href="#statistics" id="toc-statistics">Statistics</a>
+    - <a href="#statistics-1" id="toc-statistics-1">Statistics</a>
     - <a href="#figure---faceted-4" id="toc-figure---faceted-4">Figure -
       faceted</a>
 - <a href="#relative-abundance-total-anaerobe--16s-copies"
@@ -3076,8 +3077,9 @@ all_ddpcr_data %>%
   )
 ```
 
-![](ddPCR_files/figure-gfm/unnamed-chunk-97-1.png)<!-- --> \###
-Statistics
+![](ddPCR_files/figure-gfm/unnamed-chunk-97-1.png)<!-- -->
+
+### Statistics
 
 #### Check normality
 
