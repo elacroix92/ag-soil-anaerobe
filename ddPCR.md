@@ -4774,41 +4774,69 @@ t.test(
 ## Unamended, effect of tillage across sites
 
 ``` r
-prop_errors <-
+prop_anaerobe <-
   all_ddpcr_data %>% 
   group_by(site, till, amend, landscape_position, target_gene) %>% 
   summarise(
     avg_prop = mean(prop, na.rm = TRUE),
     se_prop = sd(prop, na.rm = TRUE) / sqrt(n()),
-  ) %>% 
-  group_by(site, till, amend, landscape_position) %>% 
-  summarise(
-    sum_se = sum(se_prop, na.rm = TRUE),
-    sum_prop = sum(avg_prop, na.rm = TRUE),
-    count = n()
-  )
-
-prop_errors %>% arrange(sum_prop)
+    avg_perc = avg_prop * 100
+  ) 
 ```
 
-    ## # A tibble: 17 × 7
-    ## # Groups:   site, till, amend [15]
-    ##    site  till  amend landscape_position  sum_se sum_prop count
-    ##    <chr> <chr> <chr> <chr>                <dbl>    <dbl> <int>
-    ##  1 SM    NT    A     <NA>               0.00761   0.0427     5
-    ##  2 SM    NT    U     <NA>               0.0110    0.0434     5
-    ##  3 CREC  UN    U     <NA>               0.00881   0.0476     5
-    ##  4 CREC  CT    A     <NA>               0.0106    0.0545     5
-    ##  5 SM    CT    A     <NA>               0.00990   0.0547     5
-    ##  6 SM    CT    U     <NA>               0.0188    0.0556     5
-    ##  7 CREC  CT    U     <NA>               0.00741   0.0612     5
-    ##  8 CREC  NT    U     <NA>               0.0165    0.0667     5
-    ##  9 CREC  MT    U     <NA>               0.0198    0.0792     5
-    ## 10 CREC  NT    A     <NA>               0.0219    0.0794     5
-    ## 11 WO    UN    U     <NA>               0.0146    0.0901     5
-    ## 12 GR    NT    U     S                  0.0243    0.0912     5
-    ## 13 GR    NT    U     F                  0.0177    0.0935     5
-    ## 14 SM    UN    U     <NA>               0.0254    0.113      5
-    ## 15 GR    NT    U     C                  0.0334    0.115      5
-    ## 16 WO    CT    U     <NA>               0.0244    0.135      5
-    ## 17 WO    NT    U     <NA>               0.0264    0.189      5
+Lowest relative abundance
+
+``` r
+prop_anaerobe %>% 
+  arrange(avg_perc)
+```
+
+    ## # A tibble: 85 × 8
+    ## # Groups:   site, till, amend, landscape_position [17]
+    ##    site  till  amend landscape_position target_gene  avg_prop    se_prop avg_p…¹
+    ##    <chr> <chr> <chr> <chr>              <chr>           <dbl>      <dbl>   <dbl>
+    ##  1 SM    NT    A     <NA>               mcrA        0.0000236 0.0000204  0.00236
+    ##  2 GR    NT    U     F                  mcrA        0.0000352 0.00000714 0.00352
+    ##  3 CREC  CT    U     <NA>               mcrA        0.0000381 0.0000143  0.00381
+    ##  4 CREC  UN    U     <NA>               mcrA        0.0000398 0.0000120  0.00398
+    ##  5 CREC  NT    U     <NA>               mcrA        0.0000482 0.00000818 0.00482
+    ##  6 SM    NT    U     <NA>               mcrA        0.0000508 0.0000296  0.00508
+    ##  7 CREC  MT    U     <NA>               mcrA        0.0000631 0.0000199  0.00631
+    ##  8 SM    CT    U     <NA>               mcrA        0.000108  0.0000622  0.0108 
+    ##  9 WO    UN    U     <NA>               mcrA        0.000118  0.0000456  0.0118 
+    ## 10 SM    CT    A     <NA>               mcrA        0.000121  0.0000661  0.0121 
+    ## # … with 75 more rows, and abbreviated variable name ¹​avg_perc
+
+``` r
+prop_anaerobe %>% 
+  ggplot(aes(x = avg_perc, fill = target_gene)) + 
+  geom_density() +
+  facet_wrap(facets = vars(target_gene), scales = "free") + 
+  labs(
+    x = "target gene abundance normalized to 16S (%)"
+  )
+```
+
+![](ddPCR_files/figure-gfm/unnamed-chunk-143-1.png)<!-- -->
+
+Highest relative abundance targets
+
+``` r
+prop_anaerobe %>% arrange(-avg_perc)
+```
+
+    ## # A tibble: 85 × 8
+    ## # Groups:   site, till, amend, landscape_position [17]
+    ##    site  till  amend landscape_position target_gene avg_prop se_prop avg_perc
+    ##    <chr> <chr> <chr> <chr>              <chr>          <dbl>   <dbl>    <dbl>
+    ##  1 WO    NT    U     <NA>               nirK          0.0934 0.00753     9.34
+    ##  2 WO    CT    U     <NA>               nirK          0.0826 0.0155      8.26
+    ##  3 SM    UN    U     <NA>               nirK          0.0739 0.0121      7.39
+    ##  4 GR    NT    U     C                  nirK          0.0624 0.0133      6.24
+    ##  5 GR    NT    U     F                  nirK          0.0554 0.0109      5.54
+    ##  6 WO    UN    U     <NA>               nirK          0.0515 0.00684     5.15
+    ##  7 CREC  NT    A     <NA>               nirK          0.0466 0.0163      4.66
+    ##  8 WO    NT    U     <NA>               gltA          0.0463 0.00663     4.63
+    ##  9 GR    NT    U     S                  nirK          0.0450 0.0104      4.50
+    ## 10 CREC  NT    U     <NA>               nirK          0.0407 0.00911     4.07
+    ## # … with 75 more rows

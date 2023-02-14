@@ -3464,21 +3464,37 @@ t.test(
 ## Unamended, effect of tillage across sites
 
 ```{r message=FALSE}
-prop_errors <-
+prop_anaerobe <-
   all_ddpcr_data %>% 
   group_by(site, till, amend, landscape_position, target_gene) %>% 
   summarise(
     avg_prop = mean(prop, na.rm = TRUE),
     se_prop = sd(prop, na.rm = TRUE) / sqrt(n()),
-  ) %>% 
-  group_by(site, till, amend, landscape_position) %>% 
-  summarise(
-    sum_se = sum(se_prop, na.rm = TRUE),
-    sum_prop = sum(avg_prop, na.rm = TRUE),
-    count = n()
-  )
-
-prop_errors %>% arrange(sum_prop)
+    avg_perc = avg_prop * 100
+  ) 
 
 ```
+Lowest relative abundance
+```{r}
+
+prop_anaerobe %>% 
+  arrange(avg_perc)
+
+prop_anaerobe %>% 
+  ggplot(aes(x = avg_perc, fill = target_gene)) + 
+  geom_density() +
+  facet_wrap(facets = vars(target_gene), scales = "free") + 
+  labs(
+    x = "target gene abundance normalized to 16S (%)"
+  )
+
+```
+
+Highest relative abundance targets
+```{r}
+
+prop_anaerobe %>% arrange(-avg_perc)
+
+```
+
 
