@@ -29,6 +29,8 @@ For each `.Rmd` file there is an associated `.md` file that shows the code (with
 
 `PredictSoilC.Rmd` shows the tests that predicted Soil C concentration. 
 
+`SEM.Rmd` shows the structural equation model.
+
 
 
 
