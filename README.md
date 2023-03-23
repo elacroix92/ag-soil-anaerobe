@@ -17,7 +17,7 @@ The following files represent the raw ddPCR data:
 * `EML_nirS_SHI_samples_21jan_MANUAL_6000.csv` 
 * `EML_dsrAB_SHI_samples_15mar2022_auto.csv`
 
-`AllData_03AUG.xlsx` contains all of the data from the study, with different tabs representing different datatypes. More information can be found in the "README" tab of this spreadsheet.
+`AllData_FINAL.xlsx` contains all of the data from the study, with different tabs representing different datatypes. More information can be found in the "README" tab of this spreadsheet.
 
 ## CODE
 
