@@ -29,13 +29,13 @@ library(tidyverse)
 
 ```{r eval=FALSE}
 
-all_data_excel <-  "AllData_03AUG.xlsx"
+all_data_excel <-  "AllData_FINAL.xlsx"
 
 ```
 
 ```{r eval=TRUE, echo=FALSE}
 
-all_data_excel <- "/Users/elacroi3/Documents/Research/SHI/Data/DataCompilation/AllData_03AUG.xlsx"
+all_data_excel <- "/Users/elacroi3/Documents/Research/SHI/Data/DataCompilation/AllData_FINAL.xlsx"
 
 ```
 
@@ -201,7 +201,7 @@ autoplot(
   o2_demand_pc, 
   loadings = TRUE,
   loadings.label = TRUE,
-  loadings.label.size = 4,
+  loadings.label.size = 8,
   loadings.label.hjust = 0.5,
   loadings.label.vjust = -1,
   loadings.label.colour = "black",
@@ -209,7 +209,9 @@ autoplot(
 ) + 
   theme_bw() + 
   theme(
-    aspect.ratio = 1
+    aspect.ratio = 1,
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14)
   )
 
   
@@ -246,9 +248,10 @@ autoplot(
 ) + 
   theme_bw() + 
   theme(
-    aspect.ratio = 1
+    aspect.ratio = 1,
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14)
   )
-
 
 o2_supp_pc1 <- o2_supp_pc$x %>% as_tibble() %>% pull(PC1)
 
@@ -445,8 +448,14 @@ autoplot(
 ) + 
   theme_bw() + 
   theme(
-    aspect.ratio = 1
+    aspect.ratio = 1,
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14)
   )
+
+
+ggsave("/Users/elacroi3/Documents/Research/SHI/SEM_PC_o2_demand_CREC.png")
+
 
 ```
 
@@ -477,8 +486,12 @@ autoplot(
 ) + 
   theme_bw() + 
   theme(
-    aspect.ratio = 1
+    aspect.ratio = 1,
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14)
   )
+
+#ggsave("/Users/elacroi3/Documents/Research/SHI/SEM_PC_o2_supp_CREC.png")
 
 o2_supp_pc1_crec <- o2_supp_pc_crec$x %>% as_tibble() %>% pull(PC1)
 

@@ -63,13 +63,11 @@ grav_data_file <- "intact_core_grav.csv"
 
 extract_data_file <- "dna_extraction.csv"
 
-all_data_file <- "AllData_03AUG.xlsx"
+all_data_file <- "AllData_FINAL.xlsx"
 
 mcrA_file <- "mcra_data.xlsx"
 
 sixteenS_file_auto <- "EML_16S_SHI_redo_08MAR2022_auto.csv"
-
-sixteenS_file_manual <- "EML_16S_SHI_redo_08MAR2022_auto.csv"
 
 glta_file1 <- "glta_SHI_28oct_manual.csv"
 
@@ -91,13 +89,11 @@ grav_data_file <- "/Users/elacroi3/Documents/Research/SHI/Data/DataCompilation/i
 
 extract_data_file <- "/Users/elacroi3/Documents/Research/SHI/Data/DataCompilation/dna_extraction.csv"
 
-all_data_file <- "/Users/elacroi3/Documents/Research/SHI/Data/DataCompilation/AllData_03AUG.xlsx"
+all_data_file <- "/Users/elacroi3/Documents/Research/SHI/Data/DataCompilation/AllData_FINAL.xlsx"
 
 mcrA_file <- "/Users/elacroi3/Documents/Research/SHI/Data/DataCompilation/mcra_data.xlsx"
 
 sixteenS_file_auto <- "/Users/elacroi3/Documents/Research/SHI/Data/Microbial/ddPCR/16S/EML_16S_SHI_redo_08MAR2022_auto.csv"
-
-sixteenS_file_manual <- "/Users/elacroi3/Documents/Research/SHI/Data/Microbial/ddPCR/16S/EML_16S_SHI_redo_08MAR2022_auto.csv"
 
 glta_file1 <- "/Users/elacroi3/Documents/Research/SHI/Data/Microbial/ddPCR/gltA/glta_SHI_28oct_manual.csv"
 

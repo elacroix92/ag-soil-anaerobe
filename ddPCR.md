@@ -136,13 +136,11 @@ grav_data_file <- "intact_core_grav.csv"
 
 extract_data_file <- "dna_extraction.csv"
 
-all_data_file <- "AllData_03AUG.xlsx"
+all_data_file <- "AllData_FINAL.xlsx"
 
 mcrA_file <- "mcra_data.xlsx"
 
 sixteenS_file_auto <- "EML_16S_SHI_redo_08MAR2022_auto.csv"
-
-sixteenS_file_manual <- "EML_16S_SHI_redo_08MAR2022_auto.csv"
 
 glta_file1 <- "glta_SHI_28oct_manual.csv"
 

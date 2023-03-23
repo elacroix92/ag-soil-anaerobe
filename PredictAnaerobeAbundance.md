@@ -71,7 +71,7 @@ conflicted::conflict_prefer("filter", "dplyr")
 ## File names
 
 ``` r
-all_data_excel <- "AllData_03AUG.xlsx"
+all_data_excel <- "AllData_FINAL.xlsx"
 ```
 
 ## Import
@@ -631,7 +631,7 @@ anova(rda.mng)
     ## 
     ## Model: rda(formula = varpart_anaerobe_copies ~ till + amend, data = varpart_site_data, scale = FALSE)
     ##          Df   Variance      F Pr(>F)  
-    ## Model     4 4.8235e+14 3.4319  0.016 *
+    ## Model     4 4.8235e+14 3.4319  0.014 *
     ## Residual 42 1.4758e+15                
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -666,9 +666,9 @@ anova(rda.o2.demand.part)
     ## Number of permutations: 999
     ## 
     ## Model: rda(formula = varpart_anaerobe_copies ~ copies_per_g_sixteenS + npoc_mg_c_g_soil + avg_plant_mass_per_cm3 + Condition(till + amend) + Condition(avg_bd + perc_clay + wsa_perc + mean_wfps), data = varpart_site_data, scale = FALSE)
-    ##          Df   Variance      F Pr(>F)    
-    ## Model     3 2.0849e+14 6.8933  0.001 ***
-    ## Residual 35 3.5286e+14                  
+    ##          Df   Variance      F Pr(>F)   
+    ## Model     3 2.0849e+14 6.8933  0.003 **
+    ## Residual 35 3.5286e+14                 
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -738,7 +738,7 @@ anova(rda.o2.mngmnt.part)
     ## 
     ## Model: rda(formula = varpart_anaerobe_copies ~ till + amend + Condition(avg_bd + perc_clay + wsa_perc + mean_wfps) + Condition(copies_per_g_sixteenS + npoc_mg_c_g_soil + avg_plant_mass_per_cm3), data = varpart_site_data, scale = FALSE)
     ##          Df   Variance      F Pr(>F)
-    ## Model     4 2.9748e+13 0.7377  0.583
+    ## Model     4 2.9748e+13 0.7377  0.596
     ## Residual 35 3.5286e+14
 
 O2 demand AND management
@@ -772,7 +772,7 @@ anova(rda.o2.mngmnt.demand.part)
     ## 
     ## Model: rda(formula = varpart_anaerobe_copies ~ till + amend + copies_per_g_sixteenS + npoc_mg_c_g_soil + avg_plant_mass_per_cm3 + Condition(avg_bd + perc_clay + mean_wfps + wsa_perc), data = varpart_site_data, scale = FALSE)
     ##          Df   Variance      F Pr(>F)   
-    ## Model     7 2.7673e+14 3.9212  0.005 **
+    ## Model     7 2.7673e+14 3.9212  0.008 **
     ## Residual 35 3.5286e+14                 
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -1097,7 +1097,7 @@ anova(rda.all.crec)
     ## 
     ## Model: rda(formula = varpart_anaerobe_copies_crec ~ copies_per_g_sixteenS + npoc_mg_c_g_soil + avg_perc_c + avg_plant_mass_per_cm3 + avg_bd + perc_clay + wsa_perc + mean_wfps + till + amend, data = varpart_site_data_crec, scale = FALSE)
     ##          Df Variance      F Pr(>F)  
-    ## Model    12  2890107 6.5067  0.032 *
+    ## Model    12  2890107 6.5067  0.029 *
     ## Residual  5   185073                
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -1129,9 +1129,9 @@ anova(rda.o2.demand.crec)
     ## Number of permutations: 999
     ## 
     ## Model: rda(formula = varpart_anaerobe_copies_crec ~ copies_per_g_sixteenS + npoc_mg_c_g_soil + avg_perc_c + mat_c + avg_plant_mass_per_cm3, data = varpart_site_data_crec, scale = FALSE)
-    ##          Df Variance      F Pr(>F)  
-    ## Model     5  2240041 6.4374  0.011 *
-    ## Residual 12   835140                
+    ##          Df Variance      F Pr(>F)   
+    ## Model     5  2240041 6.4374  0.004 **
+    ## Residual 12   835140                 
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -1160,7 +1160,7 @@ anova(rda.o2.supply.crec)
     ## 
     ## Model: rda(formula = varpart_anaerobe_copies_crec ~ avg_bd + perc_clay + wsa_perc + mean_wfps, data = varpart_site_data_crec, scale = FALSE)
     ##          Df Variance      F Pr(>F)   
-    ## Model     4  2039148 6.3967  0.005 **
+    ## Model     4  2039148 6.3967  0.006 **
     ## Residual 13  1036033                 
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -1187,7 +1187,7 @@ anova(rda.mng.crec)
     ## 
     ## Model: rda(formula = varpart_anaerobe_copies_crec ~ till + amend, data = varpart_site_data_crec, scale = FALSE)
     ##          Df Variance      F Pr(>F)  
-    ## Model     4  1755904 4.3256   0.02 *
+    ## Model     4  1755904 4.3256  0.023 *
     ## Residual 13  1319277                
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -1225,7 +1225,7 @@ anova(rda.o2.demand.part.crec)
     ## 
     ## Model: rda(formula = varpart_anaerobe_copies_crec ~ copies_per_g_sixteenS + npoc_mg_c_g_soil + avg_perc_c + avg_plant_mass_per_cm3 + Condition(till + amend) + Condition(avg_bd + perc_clay + mean_wfps + wsa_perc), data = varpart_site_data_crec, scale = FALSE)
     ##          Df Variance      F Pr(>F)  
-    ## Model     4   755327 5.1015  0.061 .
+    ## Model     4   755327 5.1015  0.047 *
     ## Residual  5   185073                
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -1260,9 +1260,11 @@ anova(rda.o2.supply.part.crec)
     ## Number of permutations: 999
     ## 
     ## Model: rda(formula = varpart_anaerobe_copies_crec ~ avg_bd + perc_clay + mean_wfps + wsa_perc + Condition(copies_per_g_sixteenS + npoc_mg_c_g_soil + avg_perc_c + mat_c + avg_plant_mass_per_cm3) + Condition(till + amend), data = varpart_site_data_crec, scale = FALSE)
-    ##          Df Variance      F Pr(>F)
-    ## Model     4   501461 2.7095  0.108
-    ## Residual  4   185073
+    ##          Df Variance      F Pr(>F)  
+    ## Model     4   501461 2.7095  0.097 .
+    ## Residual  4   185073                
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 \[X3\] Management alone
 
@@ -1298,5 +1300,5 @@ anova(rda.o2.mngmnt.part.crec)
     ## 
     ## Model: rda(formula = varpart_anaerobe_copies_crec ~ till + amend + Condition(avg_bd + perc_clay + mean_wfps + wsa_perc) + Condition(copies_per_g_sixteenS + npoc_mg_c_g_soil + avg_perc_c + mat_c + avg_plant_mass_per_cm3), data = varpart_site_data_crec, scale = FALSE)
     ##          Df Variance      F Pr(>F)
-    ## Model     4   169059 0.9135  0.437
+    ## Model     4   169059 0.9135  0.419
     ## Residual  4   185073

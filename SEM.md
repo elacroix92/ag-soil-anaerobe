@@ -68,7 +68,7 @@ library(tidyverse)
 ## File names
 
 ``` r
-all_data_excel <-  "AllData_03AUG.xlsx"
+all_data_excel <-  "AllData_FINAL.xlsx"
 ```
 
 ## Import
@@ -228,7 +228,7 @@ autoplot(
   o2_demand_pc, 
   loadings = TRUE,
   loadings.label = TRUE,
-  loadings.label.size = 4,
+  loadings.label.size = 8,
   loadings.label.hjust = 0.5,
   loadings.label.vjust = -1,
   loadings.label.colour = "black",
@@ -236,7 +236,9 @@ autoplot(
 ) + 
   theme_bw() + 
   theme(
-    aspect.ratio = 1
+    aspect.ratio = 1,
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14)
   )
 ```
 
@@ -272,7 +274,9 @@ autoplot(
 ) + 
   theme_bw() + 
   theme(
-    aspect.ratio = 1
+    aspect.ratio = 1,
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14)
   )
 ```
 
@@ -350,7 +354,7 @@ apriori_model1_fit <- sem(apriori_model1, data = sem_data)
 summary(apriori_model1_fit, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 17 iterations
+    ## lavaan 0.6.14 ended normally after 17 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -463,7 +467,7 @@ apriori_model2_fit <- sem(apriori_model2, data = sem_data)
 summary(apriori_model2_fit, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 27 iterations
+    ## lavaan 0.6.14 ended normally after 27 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -584,7 +588,7 @@ fit1 <- sem(model1, data = sem_data)
 summary(fit1, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 1 iteration
+    ## lavaan 0.6.14 ended normally after 1 iteration
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -688,7 +692,7 @@ fit2 <- sem(model2, data = sem_data)
 summary(fit2, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 2 iterations
+    ## lavaan 0.6.14 ended normally after 2 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -790,7 +794,7 @@ fit3 <- sem(model3, data = sem_data)
 summary(fit3, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 2 iterations
+    ## lavaan 0.6.14 ended normally after 2 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -890,7 +894,7 @@ fit4 <- sem(model4, data = sem_data)
 summary(fit4, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 1 iteration
+    ## lavaan 0.6.14 ended normally after 1 iteration
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -990,7 +994,7 @@ fit5 <- sem(model5, data = sem_data)
 summary(fit5, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 1 iteration
+    ## lavaan 0.6.14 ended normally after 1 iteration
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -1089,7 +1093,7 @@ fit6 <- sem(model6, data = sem_data)
 summary(fit6, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 1 iteration
+    ## lavaan 0.6.14 ended normally after 1 iteration
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -1205,11 +1209,19 @@ autoplot(
 ) + 
   theme_bw() + 
   theme(
-    aspect.ratio = 1
+    aspect.ratio = 1,
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14)
   )
 ```
 
 ![](SEM_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+
+``` r
+ggsave("/Users/elacroi3/Documents/Research/SHI/SEM_PC_o2_demand_CREC.png")
+```
+
+    ## Saving 7 x 5 in image
 
 ## O2 supply PC
 
@@ -1238,13 +1250,17 @@ autoplot(
 ) + 
   theme_bw() + 
   theme(
-    aspect.ratio = 1
+    aspect.ratio = 1,
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14)
   )
 ```
 
 ![](SEM_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
 ``` r
+#ggsave("/Users/elacroi3/Documents/Research/SHI/SEM_PC_o2_supp_CREC.png")
+
 o2_supp_pc1_crec <- o2_supp_pc_crec$x %>% as_tibble() %>% pull(PC1)
 ```
 
@@ -1289,7 +1305,7 @@ apriori_crec_fit1 <- sem(apriori_crec_model1, data = sem_data_crec)
 summary(apriori_crec_fit1, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 32 iterations
+    ## lavaan 0.6.14 ended normally after 32 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -1398,7 +1414,7 @@ fit1_crec <- sem(model1_crec, data = sem_data_crec)
 summary(fit1_crec, standardized=TRUE, ci=TRUE, fit.measures=TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 30 iterations
+    ## lavaan 0.6.14 ended normally after 30 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -1503,7 +1519,7 @@ fit2_crec <- sem(model2_crec, data = sem_data_crec)
 summary(fit2_crec, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 19 iterations
+    ## lavaan 0.6.14 ended normally after 19 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -1611,7 +1627,7 @@ fit3_crec <- sem(model3_crec, data = sem_data_crec)
 summary(fit3_crec, standardized=TRUE, ci=TRUE, fit.measures=TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 19 iterations
+    ## lavaan 0.6.14 ended normally after 19 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -1713,7 +1729,7 @@ fit4_crec <- sem(model4_crec, data = sem_data_crec)
 summary(fit4_crec, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 21 iterations
+    ## lavaan 0.6.14 ended normally after 21 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -1820,7 +1836,7 @@ fit5_crec <- sem(model5_crec, data = sem_data_crec)
 summary(fit5_crec, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 24 iterations
+    ## lavaan 0.6.14 ended normally after 24 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -1932,7 +1948,7 @@ fit6_crec <- sem(model6_crec, data = sem_data_crec)
 summary(fit6_crec, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 27 iterations
+    ## lavaan 0.6.14 ended normally after 27 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -2041,7 +2057,7 @@ fit7_crec <- sem(model7_crec, data = sem_data_crec)
 summary(fit7_crec, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 24 iterations
+    ## lavaan 0.6.14 ended normally after 24 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -2150,7 +2166,7 @@ fit8_crec <- sem(model8_crec, data = sem_data_crec)
 summary(fit8_crec, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 1 iteration
+    ## lavaan 0.6.14 ended normally after 1 iteration
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -2352,7 +2368,7 @@ apriori_model1_fit <- sem(apriori_model1, data = sem_data_2)
 summary(apriori_model1_fit, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 20 iterations
+    ## lavaan 0.6.14 ended normally after 20 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -2463,7 +2479,7 @@ apriori_model2_fit <- sem(apriori_model2, data = sem_data_2)
 summary(apriori_model2_fit, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 26 iterations
+    ## lavaan 0.6.14 ended normally after 26 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -2569,7 +2585,7 @@ model1_fit <- sem(model1, data = sem_data_2)
 summary(model1_fit, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 2 iterations
+    ## lavaan 0.6.14 ended normally after 2 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -2674,7 +2690,7 @@ model2_fit <- sem(model2, data = sem_data_2)
 summary(model2_fit, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 1 iteration
+    ## lavaan 0.6.14 ended normally after 1 iteration
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -2777,7 +2793,7 @@ model3_fit <- sem(model3, data = sem_data_2)
 summary(model3_fit, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 2 iterations
+    ## lavaan 0.6.14 ended normally after 2 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -2880,7 +2896,7 @@ model4_fit <- sem(model4, data = sem_data_2)
 summary(model4_fit, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 2 iterations
+    ## lavaan 0.6.14 ended normally after 2 iterations
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB
@@ -2981,7 +2997,7 @@ model5_fit <- sem(model5, data = sem_data_2)
 summary(model5_fit, standardized = TRUE, ci = TRUE, fit.measures = TRUE)
 ```
 
-    ## lavaan 0.6.13 ended normally after 1 iteration
+    ## lavaan 0.6.14 ended normally after 1 iteration
     ## 
     ##   Estimator                                         ML
     ##   Optimization method                           NLMINB

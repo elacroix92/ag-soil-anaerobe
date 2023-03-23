@@ -109,7 +109,7 @@ till_labels <-
 ## File names
 
 ``` r
-all_data_excel <- "AllData_03AUG.xlsx"
+all_data_excel <- "AllData_FINAL.xlsx"
 ```
 
 ## Import
@@ -1426,7 +1426,7 @@ anova(rda.mineral.part)
     ## 
     ## Model: rda(formula = varpart_perc_c_cult ~ ssa_m2_g + sro_mmol_kg + Condition(wsa_perc + till) + Condition(map_mm) + Condition(anaerobe_copies_per_g), data = varpart_data_perc_c_cult, scale = FALSE)
     ##          Df Variance      F Pr(>F)  
-    ## Model     2 0.018437 2.6104  0.096 .
+    ## Model     2 0.018437 2.6104  0.065 .
     ## Residual 31 0.109477                
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
@@ -1453,7 +1453,7 @@ anova(rda.phys.part)
     ## 
     ## Model: rda(formula = varpart_perc_c_cult ~ wsa_perc + till + Condition(ssa_m2_g + sro_mmol_kg) + Condition(map_mm) + Condition(anaerobe_copies_per_g), data = varpart_data_perc_c_cult, scale = FALSE)
     ##          Df Variance      F Pr(>F)
-    ## Model     3 0.021018 1.9838  0.126
+    ## Model     3 0.021018 1.9838  0.131
     ## Residual 31 0.109477
 
 **Climate**
@@ -1477,9 +1477,9 @@ anova(rda.climate.part)
     ## Number of permutations: 999
     ## 
     ## Model: rda(formula = varpart_perc_c_cult ~ map_mm + Condition(wsa_perc + till) + Condition(ssa_m2_g + sro_mmol_kg) + Condition(anaerobe_copies_per_g), data = varpart_data_perc_c_cult, scale = FALSE)
-    ##          Df Variance      F Pr(>F)   
-    ## Model     1 0.054767 15.508  0.002 **
-    ## Residual 31 0.109477                 
+    ##          Df Variance      F Pr(>F)    
+    ## Model     1 0.054767 15.508  0.001 ***
+    ## Residual 31 0.109477                  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -1505,7 +1505,7 @@ anova(rda.anoxic.part)
     ## 
     ## Model: rda(formula = varpart_perc_c_cult ~ anaerobe_copies_per_g + Condition(map_mm) + Condition(wsa_perc + till) + Condition(ssa_m2_g + sro_mmol_kg), data = varpart_data_perc_c_cult, scale = FALSE)
     ##          Df Variance      F Pr(>F)  
-    ## Model     1 0.023027 6.5204  0.013 *
+    ## Model     1 0.023027 6.5204  0.018 *
     ## Residual 31 0.109477                
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
