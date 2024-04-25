@@ -1,6 +1,6 @@
 # ag-soil-anaerobe
 
-This repository houses the data and code for Lacroix et al. 2023: Anoxic microsites enhance soil carbon storage and respond to management. 
+This repository houses the data and code for Lacroix et al. 2024: Microbial proxies for anoxic microsites vary with management and partially explain soil carbon concentration. 
 
 ## DATA
 
