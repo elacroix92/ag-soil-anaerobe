@@ -1,54 +1,42 @@
 PredictSoilC
 ================
 Emily Lacroix
-25 JAN 2023
+25 APR 2024
 
-- <a href="#set-up" id="toc-set-up">Set-up</a>
-  - <a href="#load-libraries" id="toc-load-libraries">Load libraries</a>
-  - <a href="#figure-theme" id="toc-figure-theme">Figure theme</a>
-  - <a href="#labels" id="toc-labels">Labels</a>
-  - <a href="#file-names" id="toc-file-names">File names</a>
-  - <a href="#import" id="toc-import">Import</a>
-  - <a href="#check-for-outliers-in-anaerobe-data"
-    id="toc-check-for-outliers-in-anaerobe-data">Check for outliers in
-    anaerobe data</a>
-  - <a href="#join-it-all-together" id="toc-join-it-all-together">Join it
-    all together</a>
-- <a href="#supp-table-soil-properties"
-  id="toc-supp-table-soil-properties">Supp Table: Soil Properties</a>
-- <a href="#regression" id="toc-regression">Regression</a>
-  - <a href="#all-sites" id="toc-all-sites">All sites</a>
-    - <a href="#simple-linear-regression-anaerobe-copies-vs-c"
-      id="toc-simple-linear-regression-anaerobe-copies-vs-c">Simple linear
-      regression, anaerobe copies vs. C</a>
-    - <a href="#mixed-effects-model"
-      id="toc-mixed-effects-model">Mixed-effects model</a>
-  - <a href="#individual-sites" id="toc-individual-sites">Individual
-    sites</a>
-    - <a href="#check-for-outliers-in-individual-site-sets"
-      id="toc-check-for-outliers-in-individual-site-sets">Check for outliers
-      in individual site sets</a>
-    - <a href="#regressions-with-outlier-in-sm"
-      id="toc-regressions-with-outlier-in-sm">regressions WITH outlier in
-      SM</a>
-    - <a href="#regressions-without-outlier-in-sm"
-      id="toc-regressions-without-outlier-in-sm">regressions WITHOUT outlier
-      in SM</a>
-  - <a href="#stepwise" id="toc-stepwise">Stepwise</a>
-- <a href="#variance-partioning" id="toc-variance-partioning">Variance
-  Partioning</a>
-  - <a href="#all-sites-1" id="toc-all-sites-1">All sites</a>
-    - <a href="#check-vif" id="toc-check-vif">Check VIF</a>
-    - <a href="#partition-variance" id="toc-partition-variance">Partition
-      Variance</a>
-    - <a href="#test-significance" id="toc-test-significance">Test
-      significance</a>
-  - <a href="#cultivated-only" id="toc-cultivated-only">Cultivated only</a>
-    - <a href="#check-vif-1" id="toc-check-vif-1">Check VIF</a>
-    - <a href="#partition-variance-1" id="toc-partition-variance-1">Partition
-      Variance</a>
-    - <a href="#test-significance-1" id="toc-test-significance-1">Test
-      Significance</a>
+- [Set-up](#set-up)
+  - [Load libraries](#load-libraries)
+  - [Figure theme](#figure-theme)
+  - [Labels](#labels)
+  - [File names](#file-names)
+  - [Import](#import)
+  - [Check for outliers in anaerobe
+    data](#check-for-outliers-in-anaerobe-data)
+  - [Join it all together](#join-it-all-together)
+- [Soil Properties](#soil-properties)
+  - [Unpublished table](#unpublished-table)
+- [Soil C vs. Anaerobe Abundance](#soil-c-vs-anaerobe-abundance)
+  - [All sites](#all-sites)
+    - [Create new tibble](#create-new-tibble)
+    - [Simple linear regression, anaerobe copies
+      vs. C](#simple-linear-regression-anaerobe-copies-vs-c)
+    - [Figure 4a](#figure-4a)
+    - [Mixed-effects model - Supplementary Table
+      S4](#mixed-effects-model---supplementary-table-s4)
+  - [Individual sites](#individual-sites)
+    - [Check for outliers](#check-for-outliers)
+    - [Figure 4b-e: regressions WITH outlier in
+      SM](#figure-4b-e-regressions-with-outlier-in-sm)
+    - [Supplementary Figure S1: regressions WITHOUT outlier in
+      SM](#supplementary-figure-s1-regressions-without-outlier-in-sm)
+- [Variance Partioning](#variance-partioning)
+  - [All sites](#all-sites-1)
+    - [Check VIF](#check-vif)
+    - [Figure 5a: Partition Variance](#figure-5a-partition-variance)
+    - [Test significance](#test-significance)
+  - [Cultivated only](#cultivated-only)
+    - [Check VIF](#check-vif-1)
+    - [Figure 5b: Partition Variance](#figure-5b-partition-variance)
+    - [Test Significance](#test-significance-1)
 
 # Set-up
 
@@ -61,7 +49,6 @@ library(car)
 library(vegan)
 library(psych)
 library(readxl)
-#library(lmerTest)
 library(nlme)
 library(outliers)
 library(tidyverse)
@@ -125,11 +112,6 @@ mineral <-
     across(amend, ~if_else(site == "GR", "U", .)),
     across(rep, as.numeric)
   )
-
-sixteenS_abund <-
-  all_data_excel %>% 
-  read_xlsx(sheet = "dna_ddpcr", na = "NA") %>% 
-  distinct(site, till, amend, landscape_position, rep, copies_per_g_sixteenS)
 
 anaerobe_copies_total <- 
   all_data_excel %>% 
@@ -210,8 +192,8 @@ outliers
     ##  Grubbs test for one outlier
     ## 
     ## data:  anaerobe_copies_total$anaerobe_copies_per_g
-    ## G = 2.45486, U = 0.86905, p-value = 0.2759
-    ## alternative hypothesis: highest value 177668646.209965 is an outlier
+    ## G = 5.12562, U = 0.44126, p-value = 1.67e-08
+    ## alternative hypothesis: highest value 415469910 is an outlier
 
 ``` r
 outliers_low <- grubbs.test(anaerobe_copies_total$anaerobe_copies_per_g, opposite = TRUE)
@@ -223,7 +205,7 @@ outliers_low
     ##  Grubbs test for one outlier
     ## 
     ## data:  anaerobe_copies_total$anaerobe_copies_per_g
-    ## G = 1.45772, U = 0.95383, p-value = 1
+    ## G = 1.08536, U = 0.97495, p-value = 1
     ## alternative hypothesis: lowest value 3416440.62069635 is an outlier
 
 ## Join it all together
@@ -239,10 +221,6 @@ This data:
 ``` r
 all_data <- 
   mineral %>% 
-  left_join(
-    sixteenS_abund, 
-    by = c("site", "till", "amend", "landscape_position", "rep")
-  ) %>% 
   left_join(
     anaerobe_copies_total,
     by = c("site", "till", "amend", "landscape_position", "rep")
@@ -282,7 +260,9 @@ all_data <-
   )
 ```
 
-# Supp Table: Soil Properties
+# Soil Properties
+
+## Unpublished table
 
 ``` r
 soil_properties <-
@@ -305,11 +285,43 @@ soil_properties <-
       list(mean = mean, se = ~sd(.)/sqrt(n()))
     )
   )
+
+
+soil_properties
 ```
 
-# Regression
+    ## # A tibble: 15 × 23
+    ## # Groups:   site, till [11]
+    ##    site  till  amend avg_bd_mean avg_bd_se avg_perc_c_mean avg_perc_c_se
+    ##    <chr> <fct> <fct>       <dbl>     <dbl>           <dbl>         <dbl>
+    ##  1 CREC  UN    U            1.10   0.0367            4.03         0.271 
+    ##  2 CREC  NT    U            1.40   0.0214            1.94         0.0484
+    ##  3 CREC  NT    A            1.35   0.00923           2.89         0.324 
+    ##  4 CREC  MT    U            1.40   0.0204            1.90         0.112 
+    ##  5 CREC  CT    U            1.40   0.00166           2.01         0.0408
+    ##  6 CREC  CT    A            1.36   0.0469            3.01         0.329 
+    ##  7 GR    NT    U            1.47   0.0345            1.29         0.0969
+    ##  8 SM    UN    U            1.41   0.0869            2.40         0.912 
+    ##  9 SM    NT    U            1.57   0.0407            0.964        0.0548
+    ## 10 SM    NT    A            1.48   0.0416            1.18         0.0923
+    ## 11 SM    CT    U            1.65   0.0452            1.01         0.183 
+    ## 12 SM    CT    A            1.59   0.0114            1.06         0.0118
+    ## 13 WO    UN    U            1.25   0.0556            2.15         0.162 
+    ## 14 WO    NT    U            1.39   0.0285            1.48         0.0966
+    ## 15 WO    CT    U            1.23   0.0110            1.33         0.0891
+    ## # ℹ 16 more variables: avg_perc_n_mean <dbl>, avg_perc_n_se <dbl>,
+    ## #   avg_plant_mass_per_cm3_mean <dbl>, avg_plant_mass_per_cm3_se <dbl>,
+    ## #   perc_clay_mean <dbl>, perc_clay_se <dbl>, ssa_m2_g_mean <dbl>,
+    ## #   ssa_m2_g_se <dbl>, sro_mmol_kg_mean <dbl>, sro_mmol_kg_se <dbl>,
+    ## #   npoc_mg_c_g_soil_mean <dbl>, npoc_mg_c_g_soil_se <dbl>,
+    ## #   plant_avail_n_ppm_mean <dbl>, plant_avail_n_ppm_se <dbl>,
+    ## #   wsa_perc_mean <dbl>, wsa_perc_se <dbl>
+
+# Soil C vs. Anaerobe Abundance
 
 ## All sites
+
+### Create new tibble
 
 ``` r
 multiple_reg_data_c <-
@@ -352,23 +364,23 @@ multiple_reg_data_c <-
 multiple_reg_data_c
 ```
 
-    ## # A tibble: 47 × 17
-    ##    site  till  ssa_m2_g perc_clay sro_mmo…¹ copie…² anaer…³ mat_c avg_p…⁴ avg_bd
-    ##    <chr> <fct>    <dbl>     <dbl>     <dbl>   <dbl>   <dbl> <dbl>   <dbl>  <dbl>
-    ##  1 CREC  CT        22.7      18.8      80.7  1.32e9  5.81e7   4.8 8.52e-4   1.39
-    ##  2 CREC  CT        21.0      19.4      74.6  1.21e9  6.33e7   4.8 1.24e-3   1.43
-    ##  3 CREC  CT        14.8      15.7      75.5  1.28e9  8.47e7   4.8 9.78e-4   1.27
-    ##  4 CREC  CT        18.4      16.9      66.8  6.10e8  4.96e7   4.8 3.48e-3   1.40
-    ##  5 CREC  CT        22.7      18.8      67.8  1.10e9  6.41e7   4.8 1.76e-3   1.40
-    ##  6 CREC  CT        18.4      16.3      76.7  1.06e9  5.78e7   4.8 2.31e-4   1.41
-    ##  7 CREC  MT        15.5      18.2      64.6  4.48e8  4.34e7   4.8 2.80e-3   1.43
-    ##  8 CREC  MT        23.1      20.1      72.6  1.37e9  6.29e7   4.8 3.91e-3   1.36
-    ##  9 CREC  MT        19.6      16.3      72.5  8.90e8  7.87e7   4.8 2.12e-3   1.39
-    ## 10 CREC  NT        22.2      19.4      88.0  2.16e9  1.19e8   4.8 6.44e-5   1.33
-    ## # … with 37 more rows, 7 more variables: avg_perc_c <dbl>, ppm_n_nh4 <dbl>,
-    ## #   ppm_n_nox <dbl>, wsa_perc <dbl>, cultivated <dbl>, amended <dbl>,
-    ## #   red_no_till <dbl>, and abbreviated variable names ¹​sro_mmol_kg,
-    ## #   ²​copies_per_g_sixteenS, ³​anaerobe_copies_per_g, ⁴​avg_plant_mass_per_cm3
+    ## # A tibble: 47 × 16
+    ##    site  till  ssa_m2_g perc_clay sro_mmol_kg anaerobe_copies_per_g mat_c
+    ##    <chr> <fct>    <dbl>     <dbl>       <dbl>                 <dbl> <dbl>
+    ##  1 CREC  CT        22.7      18.8        80.7             58127300.   4.8
+    ##  2 CREC  CT        21.0      19.4        74.6             63251238.   4.8
+    ##  3 CREC  CT        14.8      15.7        75.5             84726515.   4.8
+    ##  4 CREC  CT        18.4      16.9        66.8             49591671.   4.8
+    ##  5 CREC  CT        22.7      18.8        67.8             64090647.   4.8
+    ##  6 CREC  CT        18.4      16.3        76.7             57761702.   4.8
+    ##  7 CREC  MT        15.5      18.2        64.6             43449404.   4.8
+    ##  8 CREC  MT        23.1      20.1        72.6             62898705.   4.8
+    ##  9 CREC  MT        19.6      16.3        72.5             78703568.   4.8
+    ## 10 CREC  NT        22.2      19.4        88.0            119073250.   4.8
+    ## # ℹ 37 more rows
+    ## # ℹ 9 more variables: avg_plant_mass_per_cm3 <dbl>, avg_bd <dbl>,
+    ## #   avg_perc_c <dbl>, ppm_n_nh4 <dbl>, ppm_n_nox <dbl>, wsa_perc <dbl>,
+    ## #   cultivated <dbl>, amended <dbl>, red_no_till <dbl>
 
 ### Simple linear regression, anaerobe copies vs. C
 
@@ -397,6 +409,8 @@ summary(anaerobe_c)
     ## Residual standard error: 0.8429 on 45 degrees of freedom
     ## Multiple R-squared:  0.2193, Adjusted R-squared:  0.2019 
     ## F-statistic: 12.64 on 1 and 45 DF,  p-value: 0.0009027
+
+### Figure 4a
 
 ``` r
 all_data %>% 
@@ -430,7 +444,7 @@ all_data %>%
 
 ![](PredictSoilC_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
-### Mixed-effects model
+### Mixed-effects model - Supplementary Table S4
 
 ``` r
 anaerobe_c_mixed_effects <-   
@@ -459,7 +473,7 @@ r.squaredGLMM(anaerobe_c_mixed_effects)
 
 ## Individual sites
 
-### Check for outliers in individual site sets
+### Check for outliers
 
 ``` r
 crec_data <- 
@@ -592,7 +606,7 @@ grubbs.test(sm_data_no_outliers$avg_perc_c)
     ## G = 1.75759, U = 0.72112, p-value = 0.4133
     ## alternative hypothesis: highest value 1.51549999999999 is an outlier
 
-### regressions WITH outlier in SM
+### Figure 4b-e: regressions WITH outlier in SM
 
 ``` r
 all_data %>% 
@@ -746,7 +760,7 @@ summary(anaerobe_c_sm)
     ## Multiple R-squared:  0.7419, Adjusted R-squared:  0.7204 
     ## F-statistic:  34.5 on 1 and 12 DF,  p-value: 7.555e-05
 
-### regressions WITHOUT outlier in SM
+### Supplementary Figure S1: regressions WITHOUT outlier in SM
 
 ``` r
 all_data %>% 
@@ -812,60 +826,6 @@ anaerobe_c_sm_no_outlier %>% summary()
     ## Residual standard error: 0.1248 on 11 degrees of freedom
     ## Multiple R-squared:  0.7293, Adjusted R-squared:  0.7047 
     ## F-statistic: 29.63 on 1 and 11 DF,  p-value: 0.0002028
-
-## Stepwise
-
-``` r
-# Fit the full model 
-full.model <- lm(avg_perc_c ~., data = multiple_reg_data_c %>% select(-c(site, cultivated)))
-
-# Stepwise regression model
-step.model <- stepAIC(full.model, direction = "backward", trace = FALSE)
-
-summary(step.model)
-```
-
-    ## 
-    ## Call:
-    ## lm(formula = avg_perc_c ~ till + perc_clay + anaerobe_copies_per_g + 
-    ##     mat_c + avg_bd + ppm_n_nox + amended, data = multiple_reg_data_c %>% 
-    ##     select(-c(site, cultivated)))
-    ## 
-    ## Residuals:
-    ##     Min      1Q  Median      3Q     Max 
-    ## -0.7375 -0.2578 -0.0104  0.2680  1.0686 
-    ## 
-    ## Coefficients:
-    ##                         Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)            8.124e+00  1.067e+00   7.617 4.34e-09 ***
-    ## tillNT                -1.124e+00  2.533e-01  -4.439 7.87e-05 ***
-    ## tillMT                -1.564e+00  3.588e-01  -4.359 9.99e-05 ***
-    ## tillCT                -1.269e+00  2.540e-01  -4.998 1.42e-05 ***
-    ## perc_clay             -3.638e-02  1.807e-02  -2.013  0.05146 .  
-    ## anaerobe_copies_per_g -4.136e-09  2.406e-09  -1.719  0.09392 .  
-    ## mat_c                 -1.207e-01  2.385e-02  -5.058 1.18e-05 ***
-    ## avg_bd                -2.615e+00  7.824e-01  -3.342  0.00191 ** 
-    ## ppm_n_nox              1.366e-01  4.876e-02   2.801  0.00806 ** 
-    ## amended                3.235e-01  1.818e-01   1.779  0.08343 .  
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 0.4216 on 37 degrees of freedom
-    ## Multiple R-squared:  0.8394, Adjusted R-squared:  0.8003 
-    ## F-statistic: 21.48 on 9 and 37 DF,  p-value: 3.97e-12
-
-``` r
-vif(step.model)
-```
-
-    ##                           GVIF Df GVIF^(1/(2*Df))
-    ## till                  3.285734  3        1.219286
-    ## perc_clay             3.626953  1        1.904456
-    ## anaerobe_copies_per_g 2.932636  1        1.712494
-    ## mat_c                 2.965548  1        1.722077
-    ## avg_bd                3.426375  1        1.851047
-    ## ppm_n_nox             1.740411  1        1.319246
-    ## amended               1.566632  1        1.251652
 
 # Variance Partioning
 
@@ -1041,7 +1001,7 @@ summary(anaerobe.lm)
     ## Multiple R-squared:  0.2193, Adjusted R-squared:  0.2019 
     ## F-statistic: 12.64 on 1 and 45 DF,  p-value: 0.0009027
 
-### Partition Variance
+### Figure 5a: Partition Variance
 
 ``` r
 total_c_mod <-
@@ -1068,7 +1028,7 @@ plot(
 ) 
 ```
 
-![](PredictSoilC_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+![](PredictSoilC_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
 
 ### Test significance
 
@@ -1076,7 +1036,7 @@ plot(
 showvarparts(4)
 ```
 
-![](PredictSoilC_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
+![](PredictSoilC_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
 
 ## Cultivated only
 
@@ -1249,7 +1209,7 @@ summary(anaerobe.lm.cult)
     ## Multiple R-squared:  0.186,  Adjusted R-squared:  0.164 
     ## F-statistic: 8.452 on 1 and 37 DF,  p-value: 0.006128
 
-### Partition Variance
+### Figure 5b: Partition Variance
 
 ``` r
 total_c_mod_cult <-
@@ -1276,7 +1236,7 @@ plot(
 ) 
 ```
 
-![](PredictSoilC_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
+![](PredictSoilC_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
 
 ### Test Significance
 
@@ -1425,11 +1385,9 @@ anova(rda.mineral.part)
     ## Number of permutations: 999
     ## 
     ## Model: rda(formula = varpart_perc_c_cult ~ ssa_m2_g + sro_mmol_kg + Condition(wsa_perc + till) + Condition(map_mm) + Condition(anaerobe_copies_per_g), data = varpart_data_perc_c_cult, scale = FALSE)
-    ##          Df Variance      F Pr(>F)  
-    ## Model     2 0.018437 2.6104  0.065 .
-    ## Residual 31 0.109477                
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ##          Df Variance      F Pr(>F)
+    ## Model     2 0.018437 2.6104  0.106
+    ## Residual 31 0.109477
 
 **Physical**
 
@@ -1453,7 +1411,7 @@ anova(rda.phys.part)
     ## 
     ## Model: rda(formula = varpart_perc_c_cult ~ wsa_perc + till + Condition(ssa_m2_g + sro_mmol_kg) + Condition(map_mm) + Condition(anaerobe_copies_per_g), data = varpart_data_perc_c_cult, scale = FALSE)
     ##          Df Variance      F Pr(>F)
-    ## Model     3 0.021018 1.9838  0.131
+    ## Model     3 0.021018 1.9838  0.135
     ## Residual 31 0.109477
 
 **Climate**
@@ -1505,7 +1463,7 @@ anova(rda.anoxic.part)
     ## 
     ## Model: rda(formula = varpart_perc_c_cult ~ anaerobe_copies_per_g + Condition(map_mm) + Condition(wsa_perc + till) + Condition(ssa_m2_g + sro_mmol_kg), data = varpart_data_perc_c_cult, scale = FALSE)
     ##          Df Variance      F Pr(>F)  
-    ## Model     1 0.023027 6.5204  0.018 *
+    ## Model     1 0.023027 6.5204  0.014 *
     ## Residual 31 0.109477                
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1

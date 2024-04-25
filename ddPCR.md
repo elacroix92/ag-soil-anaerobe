@@ -1,90 +1,88 @@
-ddPCR all data
+ddPCR
 ================
 Emily Lacroix
-25 JAN 2023
+25 APR 2024
 
-- <a href="#setup" id="toc-setup">Setup</a>
-  - <a href="#load-libraries" id="toc-load-libraries">Load libraries</a>
-  - <a href="#functions" id="toc-functions">Functions</a>
-  - <a href="#files" id="toc-files">Files</a>
-  - <a href="#figure-theme" id="toc-figure-theme">Figure theme</a>
-  - <a href="#labels" id="toc-labels">Labels</a>
-  - <a href="#constants" id="toc-constants">Constants</a>
-- <a href="#import-and-combine-data"
-  id="toc-import-and-combine-data">Import and combine data</a>
-  - <a href="#extraction-data" id="toc-extraction-data">Extraction data</a>
-  - <a href="#soil-moisture-data" id="toc-soil-moisture-data">Soil Moisture
-    data</a>
-  - <a href="#import-ddpcr-results" id="toc-import-ddpcr-results">Import
-    ddPCR results</a>
-    - <a href="#mcra" id="toc-mcra">mcrA</a>
-    - <a href="#glta" id="toc-glta">gltA</a>
-    - <a href="#nirk" id="toc-nirk">nirK</a>
-    - <a href="#nirs" id="toc-nirs">nirS</a>
-    - <a href="#dsrab" id="toc-dsrab">dsrAB</a>
-    - <a href="#16s" id="toc-16s">16S</a>
-  - <a href="#combine-data" id="toc-combine-data">Combine data</a>
-  - <a href="#check-for-outliers" id="toc-check-for-outliers">Check for
-    outliers</a>
-    - <a href="#total-anaerobes" id="toc-total-anaerobes">Total anaerobes</a>
-- <a href="#absolute-abundance-unamended-effect-of-tillage-across-sites"
-  id="toc-absolute-abundance-unamended-effect-of-tillage-across-sites">Absolute
-  Abundance: Unamended, effect of tillage across sites</a>
-  - <a href="#figure---faceted" id="toc-figure---faceted">Figure -
-    faceted</a>
-    - <a href="#statistics---nirk" id="toc-statistics---nirk">Statistics -
-      nirK</a>
-    - <a href="#statistics---nirs" id="toc-statistics---nirs">Statistics -
-      nirS</a>
-    - <a href="#statistics-glta" id="toc-statistics-glta">Statistics gltA</a>
-    - <a href="#statistics---dsrab" id="toc-statistics---dsrab">Statistics -
-      dsrAB</a>
-    - <a href="#statistics---mcra" id="toc-statistics---mcra">Statistics -
-      mcrA</a>
-  - <a href="#figure---stacked-bars" id="toc-figure---stacked-bars">Figure -
-    stacked bars</a>
-    - <a href="#statistics---total-anaerobe"
-      id="toc-statistics---total-anaerobe">Statistics - total anaerobe</a>
-  - <a href="#tillage---carrington-only"
-    id="toc-tillage---carrington-only">Tillage - Carrington only</a>
-    - <a href="#figure---stacked-bar" id="toc-figure---stacked-bar">Figure -
-      stacked bar</a>
-    - <a href="#figure---faceted-1" id="toc-figure---faceted-1">Figure -
-      faceted</a>
-- <a href="#absolute-abundance-landscape-position"
-  id="toc-absolute-abundance-landscape-position">Absolute Abundance:
-  Landscape Position</a>
-  - <a href="#figure---faceted-2" id="toc-figure---faceted-2">Figure -
-    faceted</a>
-  - <a href="#figure---stacked-bars-1"
-    id="toc-figure---stacked-bars-1">Figure - stacked bars</a>
-- <a href="#absolute-abundance---manure-amendments-at-carrington"
-  id="toc-absolute-abundance---manure-amendments-at-carrington">Absolute
-  Abundance - Manure amendments at Carrington</a>
-  - <a href="#figure---stacked-bars-2"
-    id="toc-figure---stacked-bars-2">Figure - stacked bars</a>
-    - <a href="#statistics" id="toc-statistics">Statistics</a>
-  - <a href="#figure---faceted-3" id="toc-figure---faceted-3">Figure -
-    faceted</a>
-    - <a href="#nirk-1" id="toc-nirk-1">nirK</a>
-    - <a href="#nirs-1" id="toc-nirs-1">nirS</a>
-    - <a href="#glta-1" id="toc-glta-1">gltA</a>
-    - <a href="#dsrab-1" id="toc-dsrab-1">dsrAB</a>
-    - <a href="#mcra-1" id="toc-mcra-1">mcrA</a>
-- <a href="#absolute-abundance--poultry-litter-amendments--sand-mountain"
-  id="toc-absolute-abundance--poultry-litter-amendments--sand-mountain">Absolute
-  abundance- poultry litter amendments @ Sand Mountain</a>
-  - <a href="#figure---stacked-bar-1" id="toc-figure---stacked-bar-1">Figure
-    - stacked bar</a>
-    - <a href="#statistics-1" id="toc-statistics-1">Statistics</a>
-    - <a href="#figure---faceted-4" id="toc-figure---faceted-4">Figure -
-      faceted</a>
-- <a href="#relative-abundance-total-anaerobe--16s-copies"
-  id="toc-relative-abundance-total-anaerobe--16s-copies">Relative
-  Abundance (total anaerobe / 16S copies)</a>
-  - <a href="#unamended-effect-of-tillage-across-sites"
-    id="toc-unamended-effect-of-tillage-across-sites">Unamended, effect of
-    tillage across sites</a>
+- [Setup](#setup)
+  - [Load libraries](#load-libraries)
+  - [Functions](#functions)
+  - [Files](#files)
+  - [Figure theme](#figure-theme)
+  - [Labels](#labels)
+  - [Constants](#constants)
+- [Import and combine data](#import-and-combine-data)
+  - [Extraction data](#extraction-data)
+  - [Soil Moisture data](#soil-moisture-data)
+  - [Import ddPCR results](#import-ddpcr-results)
+    - [mcrA](#mcra)
+    - [gltA](#glta)
+    - [nirK](#nirk)
+    - [nirS](#nirs)
+    - [dsrAB](#dsrab)
+  - [Combine data](#combine-data)
+  - [Check for outliers](#check-for-outliers)
+    - [Total anaerobes](#total-anaerobes)
+- [Absolute Abundance: Unamended, effect of tillage across
+  sites](#absolute-abundance-unamended-effect-of-tillage-across-sites)
+  - [Figure 2b](#figure-2b)
+  - [Statistical tests - reported in Supplementary Table
+    S2](#statistical-tests---reported-in-supplementary-table-s2)
+    - [Statistics - nirK](#statistics---nirk)
+    - [Statistics - nirS](#statistics---nirs)
+    - [Statistics gltA](#statistics-glta)
+    - [Statistics - dsrAB](#statistics---dsrab)
+    - [Statistics - mcrA](#statistics---mcra)
+  - [Figure 2a - stacked bars](#figure-2a---stacked-bars)
+  - [Statistics reported in Supplementary Table S2 (total
+    anaerobe)](#statistics-reported-in-supplementary-table-s2-total-anaerobe)
+    - [total anaerobe - CREC](#total-anaerobe---crec)
+    - [total anaerobe - SM](#total-anaerobe---sm)
+    - [total anaerobe - WO](#total-anaerobe---wo)
+- [Tillage - Carrington only](#tillage---carrington-only)
+  - [Figure - stacked bar
+    (unpublished)](#figure---stacked-bar-unpublished)
+  - [Figure - faceted (unpublished)](#figure---faceted-unpublished)
+- [Absolute Abundance: Landscape
+  Position](#absolute-abundance-landscape-position)
+  - [Supplementary Figure S5b -
+    faceted](#supplementary-figure-s5b---faceted)
+  - [Supplementary Figure S5a - stacked
+    bars](#supplementary-figure-s5a---stacked-bars)
+- [Absolute Abundance - Manure amendments at
+  Carrington](#absolute-abundance---manure-amendments-at-carrington)
+  - [Figure 3a - stacked bars](#figure-3a---stacked-bars)
+  - [Statistical Tests reported in Supplementary Table S3 (Total
+    anaerobe)](#statistical-tests-reported-in-supplementary-table-s3-total-anaerobe)
+    - [total anaerobe - manure effect](#total-anaerobe---manure-effect)
+  - [Figure 3b - faceted](#figure-3b---faceted)
+  - [Statistical Tests reported in Supplementary Table
+    S3](#statistical-tests-reported-in-supplementary-table-s3)
+    - [nirK](#nirk-1)
+    - [nirS](#nirs-1)
+    - [gltA](#glta-1)
+    - [dsrAB](#dsrab-1)
+    - [mcrA](#mcra-1)
+- [PCA of Anaerobe Abundance](#pca-of-anaerobe-abundance)
+  - [Create tibble for PCA](#create-tibble-for-pca)
+  - [Check normality](#check-normality-1)
+  - [Confirm outliers removed](#confirm-outliers-removed)
+  - [Perform PCA](#perform-pca)
+    - [Plot - Supplementary Figure S2](#plot---supplementary-figure-s2)
+    - [Save PC1 values](#save-pc1-values)
+- [PC1 vs. tillage](#pc1-vs-tillage)
+  - [Supplementary Figure S3](#supplementary-figure-s3)
+  - [Statistics - values reported in Supplementary Table
+    S2](#statistics---values-reported-in-supplementary-table-s2)
+    - [CREC](#crec)
+    - [SM](#sm)
+    - [WO](#wo)
+- [PC1 Anaerobe Abundances vs. manure
+  amendments](#pc1-anaerobe-abundances-vs-manure-amendments)
+  - [Supplementary Figure S4](#supplementary-figure-s4)
+  - [Statistics - Reported in Supplementary Table
+    S3](#statistics---reported-in-supplementary-table-s3)
+    - [CT](#ct-5)
+    - [NT](#nt-5)
 
 # Setup
 
@@ -98,6 +96,7 @@ library(outliers)
 library(tidyverse)
 library(readxl)
 library(ggpubr)
+library(ggfortify)
 library(scales)
 library(rstatix)
 library(rcompanion)
@@ -139,8 +138,6 @@ extract_data_file <- "dna_extraction.csv"
 all_data_file <- "AllData_FINAL.xlsx"
 
 mcrA_file <- "mcra_data.xlsx"
-
-sixteenS_file_auto <- "EML_16S_SHI_redo_08MAR2022_auto.csv"
 
 glta_file1 <- "glta_SHI_28oct_manual.csv"
 
@@ -217,20 +214,20 @@ dna_extraction
 ```
 
     ## # A tibble: 51 × 10
-    ##    site  till  amend landscape_po…¹   rep mass_g nano_…² nano_…³ qubit…⁴ qubit…⁵
-    ##    <chr> <chr> <chr> <chr>          <dbl>  <dbl>   <dbl>   <dbl>   <dbl>   <dbl>
-    ##  1 CREC  CT    A     <NA>               1  0.249    1.76    1.38    40.8     204
-    ##  2 CREC  CT    A     <NA>               2  0.248    1.83    1.48    41       205
-    ##  3 CREC  CT    A     <NA>               3  0.249    1.81    0.65    67.8     339
-    ##  4 CREC  CT    U     <NA>               1  0.252    1.77    1.33    31.4     157
-    ##  5 CREC  CT    U     <NA>               2  0.248    1.79    1.93    34.2     171
-    ##  6 CREC  CT    U     <NA>               3  0.250    1.75    1.23    41.4     207
-    ##  7 CREC  MT    U     <NA>               1  0.249    1.7     1.01    47.4     237
-    ##  8 CREC  MT    U     <NA>               2  0.248    1.76    1.19    51.4     257
-    ##  9 CREC  MT    U     <NA>               3  0.25     1.84    1.43    30.4     152
-    ## 10 CREC  NT    A     <NA>               1  0.248    1.77    1.33    72       360
-    ## # … with 41 more rows, and abbreviated variable names ¹​landscape_position,
-    ## #   ²​nano_260_280, ³​nano_260_230, ⁴​qubit_ng_ul, ⁵​qubit_ng_mL
+    ##    site  till  amend landscape_position   rep mass_g nano_260_280 nano_260_230
+    ##    <chr> <chr> <chr> <chr>              <dbl>  <dbl>        <dbl>        <dbl>
+    ##  1 CREC  CT    A     <NA>                   1  0.249         1.76         1.38
+    ##  2 CREC  CT    A     <NA>                   2  0.248         1.83         1.48
+    ##  3 CREC  CT    A     <NA>                   3  0.249         1.81         0.65
+    ##  4 CREC  CT    U     <NA>                   1  0.252         1.77         1.33
+    ##  5 CREC  CT    U     <NA>                   2  0.248         1.79         1.93
+    ##  6 CREC  CT    U     <NA>                   3  0.250         1.75         1.23
+    ##  7 CREC  MT    U     <NA>                   1  0.249         1.7          1.01
+    ##  8 CREC  MT    U     <NA>                   2  0.248         1.76         1.19
+    ##  9 CREC  MT    U     <NA>                   3  0.25          1.84         1.43
+    ## 10 CREC  NT    A     <NA>                   1  0.248         1.77         1.33
+    ## # ℹ 41 more rows
+    ## # ℹ 2 more variables: qubit_ng_ul <dbl>, qubit_ng_mL <dbl>
 
 ## Soil Moisture data
 
@@ -303,20 +300,20 @@ mcrA_data %>% arrange(site, till, amend, rep, landscape_position)
 ```
 
     ## # A tibble: 62 × 10
-    ##    site  till  amend   rep  conc conc_min conc_max total_dropl…¹ lands…² targe…³
-    ##    <chr> <chr> <chr> <dbl> <dbl>    <dbl>    <dbl>         <dbl> <chr>   <chr>  
-    ##  1 CREC  CT    A         1  26       23       29           12996 <NA>    mcrA   
-    ##  2 CREC  CT    A         2  10.4      8.4     12.4         11959 <NA>    mcrA   
-    ##  3 CREC  CT    A         3  64.3     59.5     69           13414 <NA>    mcrA   
-    ##  4 CREC  CT    U         1   4        3        5.4         12820 <NA>    mcrA   
-    ##  5 CREC  CT    U         2   0       NA       NA           11998 <NA>    mcrA   
-    ##  6 CREC  CT    U         3   3.7      2.6      4.9         13234 <NA>    mcrA   
-    ##  7 CREC  CT    U         3   4.4      3.3      5.8         12733 <NA>    mcrA   
-    ##  8 CREC  MT    U         1   4.3      3.2      5.7         12232 <NA>    mcrA   
-    ##  9 CREC  MT    U         2   2.4      1.6      3.5         12342 <NA>    mcrA   
-    ## 10 CREC  MT    U         3   7.4      5.9      9.1         13239 <NA>    mcrA   
-    ## # … with 52 more rows, and abbreviated variable names ¹​total_droplets,
-    ## #   ²​landscape_position, ³​target_gene
+    ##    site  till  amend   rep  conc conc_min conc_max total_droplets
+    ##    <chr> <chr> <chr> <dbl> <dbl>    <dbl>    <dbl>          <dbl>
+    ##  1 CREC  CT    A         1  26       23       29            12996
+    ##  2 CREC  CT    A         2  10.4      8.4     12.4          11959
+    ##  3 CREC  CT    A         3  64.3     59.5     69            13414
+    ##  4 CREC  CT    U         1   4        3        5.4          12820
+    ##  5 CREC  CT    U         2   0       NA       NA            11998
+    ##  6 CREC  CT    U         3   3.7      2.6      4.9          13234
+    ##  7 CREC  CT    U         3   4.4      3.3      5.8          12733
+    ##  8 CREC  MT    U         1   4.3      3.2      5.7          12232
+    ##  9 CREC  MT    U         2   2.4      1.6      3.5          12342
+    ## 10 CREC  MT    U         3   7.4      5.9      9.1          13239
+    ## # ℹ 52 more rows
+    ## # ℹ 2 more variables: landscape_position <chr>, target_gene <chr>
 
 ### gltA
 
@@ -535,74 +532,6 @@ dsrab_data <-
   filter(total_droplets > 10000)
 ```
 
-### 16S
-
-This code:
-
-- reads in the 16S data
-- selects relevant data fields and renames to be 16S specific
-- omits data from wells with pipetting errors (as recorded in laboratory
-  notebook)
-- omits data with fewer than 10,000 droplets
-
-``` r
-sixteenS_data <- 
-  sixteenS_file_auto %>% 
-  read_csv() %>% 
-  filter(
-    TargetType == "Ch1Unknown" & Well != "F09" & Well != "G09" & Well != "G07"
-  ) %>%
-  select(
-    sample_name = Sample,
-    target_type = TargetType,
-    status = Status,
-    conc = Concentration, 
-    copies_per_20uL = CopiesPer20uLWell,
-    conc_min = PoissonConfMin,
-    conc_max = PoissonConfMax,
-    positives = Positives,
-    negatives = Negatives,
-    total_droplets = AcceptedDroplets
-  ) %>% 
-  separate(
-    sample_name, 
-    into = c("site", "till", "amend", "rep"),
-    sep = c("-")
-  ) %>% 
-  mutate(
-    dilution = as.numeric(str_extract(rep, "(?<=:)\\d+")),
-    across(rep, ~str_extract(., "^\\d")),
-    landscape_position = if_else(site == "GR", amend, NA_character_),
-    across(amend, ~if_else(site == "GR", "U", .)),
-    across(c(conc, rep), as.numeric),
-    target_gene = "16S"
-  ) %>% 
-  filter(
-    site %in% c("SM", "CREC", "GR", "WO"),
-    !(site == "SM" & till %in% c("NT", "UN") & dilution == 10),
-    !(site == "SM" & till == "UN" & dilution == 1000)
-  ) %>% 
-  mutate(
-    sixteenS_conc = conc * dilution,
-    sixteenS_conc_min = conc_min * dilution,
-    sixteenS_conc_max = conc_max * dilution,  #
-    sixteenS_droplets = total_droplets
-  ) %>% 
-  select(
-    -c(
-      target_type, 
-      status, 
-      positives, 
-      negatives, 
-      copies_per_20uL, 
-      dilution
-      )
-  ) %>% 
-  filter(total_droplets > 10000) %>% 
-  group_by(site, till, amend, rep, landscape_position) %>% 
-  summarise(across(c(sixteenS_conc, sixteenS_conc_min, sixteenS_conc_max), mean))
-```
-
 ## Combine data
 
 This code:
@@ -612,15 +541,9 @@ This code:
 - calculates target gene abundance normalized to 16S abundance
 - calculates copies per g soil extracted
 
-NOTE - all concentrations are currently in copies per uL
-
 ``` r
 all_ddpcr_data_w_outliers <- 
   bind_rows(mcrA_data, glta_data, dsrab_data, nirk_data, nirs_data) %>% 
-  left_join(
-    sixteenS_data, 
-    by = c("site", "till", "amend", "landscape_position", "rep")
-  ) %>% 
   left_join(
     dna_extraction,
     by =
@@ -634,17 +557,12 @@ all_ddpcr_data_w_outliers <-
   mutate(
     across(
       c(conc, 
-        sixteenS_conc, 
         conc_min, 
         conc_max, 
-        sixteenS_conc_min, 
-        sixteenS_conc_max
       ), ~ . * rxn_dilution_factor
     ),
     g_h2o = mass_g / (1 / avg_gwc + 1),
     mass_dry_soil = mass_g - g_h2o,
-    prop = conc / sixteenS_conc,
-    copies_per_g_sixteenS = sixteenS_conc * 100 / mass_dry_soil,
     copies_per_g = conc * 100 / mass_dry_soil
   ) 
 ```
@@ -696,7 +614,7 @@ outliers <- grubbs.test(total_anaerobe$anaerobe_copies_per_g)
 
 # Absolute Abundance: Unamended, effect of tillage across sites
 
-## Figure - faceted
+## Figure 2b
 
 ``` r
 all_ddpcr_data %>% 
@@ -752,142 +670,11 @@ all_ddpcr_data %>%
   )
 ```
 
-![](ddPCR_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+![](ddPCR_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+
+## Statistical tests - reported in Supplementary Table S2
 
 ### Statistics - nirK
-
-#### nirK - all sites
-
-**Normality:** no single transformation makes all 9 groups normal
-
-``` r
-all_ddpcr_data %>% 
-  filter(site != "GR", till != "MT", amend == "U",target_gene == "nirK") %>%
-  group_by(site, till, amend, target_gene) %>% 
-  summarise(
-    normality_p = shapiro.test(copies_per_g)$p.value
-  ) %>%
-  arrange(normality_p)
-```
-
-    ## # A tibble: 9 × 5
-    ## # Groups:   site, till, amend [9]
-    ##   site  till  amend target_gene normality_p
-    ##   <chr> <chr> <chr> <chr>             <dbl>
-    ## 1 CREC  UN    U     nirK             0.0179
-    ## 2 CREC  NT    U     nirK             0.0409
-    ## 3 SM    UN    U     nirK             0.141 
-    ## 4 WO    NT    U     nirK             0.237 
-    ## 5 SM    NT    U     nirK             0.280 
-    ## 6 CREC  CT    U     nirK             0.518 
-    ## 7 SM    CT    U     nirK             0.637 
-    ## 8 WO    CT    U     nirK             0.798 
-    ## 9 WO    UN    U     nirK             0.865
-
-**Variances:**
-
-``` r
-leveneTest( 
-  copies_per_g ~ interaction(till, site),
-  data = 
-    all_ddpcr_data %>% 
-    filter(site != "GR", till != "MT", amend == "U",target_gene == "nirK") 
-) 
-```
-
-    ## Levene's Test for Homogeneity of Variance (center = median)
-    ##       Df F value Pr(>F)
-    ## group  8   0.795 0.6124
-    ##       24
-
-*Statistical test:* Kruskal-Wallis test
-
-``` r
-kruskal.test(
-  copies_per_g ~ interaction(till, site), 
-  data = 
-    all_ddpcr_data %>% 
-    filter(site != "GR", till != "MT", amend == "U", target_gene == "nirK")
-)
-```
-
-    ## 
-    ##  Kruskal-Wallis rank sum test
-    ## 
-    ## data:  copies_per_g by interaction(till, site)
-    ## Kruskal-Wallis chi-squared = 28.204, df = 8, p-value = 0.0004371
-
-``` r
-dunn <- 
-  dunnTest(
-    copies_per_g ~ interaction(till, site), 
-    data = 
-      all_ddpcr_data %>% 
-      filter(site != "GR", till != "MT", amend == "U", target_gene == "nirK"),
-    method = "bh"
-  )
-
-dunn_pt <- dunn$res
-
-cldList(comparison = dunn_pt$Comparison,
-        p.value    = dunn_pt$P.adj,
-        threshold  = 0.05,
-        print.comp = TRUE
-        )
-```
-
-    ## 
-    ##  
-    ##                     Comparisons     p.value Value Threshold
-    ## CT.CREC-CT.SM     CT.CREC-CT.SM 0.283206467 FALSE      0.05
-    ## CT.CREC-CT.WO     CT.CREC-CT.WO 0.301520384 FALSE      0.05
-    ## CT.SM-CT.WO         CT.SM-CT.WO 0.057975686 FALSE      0.05
-    ## CT.CREC-NT.CREC CT.CREC-NT.CREC 0.857896127 FALSE      0.05
-    ## CT.SM-NT.CREC     CT.SM-NT.CREC 0.442024030 FALSE      0.05
-    ## CT.WO-NT.CREC     CT.WO-NT.CREC 0.286389555 FALSE      0.05
-    ## CT.CREC-NT.SM     CT.CREC-NT.SM 0.261666351 FALSE      0.05
-    ## CT.SM-NT.SM         CT.SM-NT.SM 1.000000000 FALSE      0.05
-    ## CT.WO-NT.SM         CT.WO-NT.SM 0.040363280  TRUE      0.05
-    ## NT.CREC-NT.SM     NT.CREC-NT.SM 0.430876734 FALSE      0.05
-    ## CT.CREC-NT.WO     CT.CREC-NT.WO 0.202150472 FALSE      0.05
-    ## CT.SM-NT.WO         CT.SM-NT.WO 0.026771583  TRUE      0.05
-    ## CT.WO-NT.WO         CT.WO-NT.WO 0.832803504 FALSE      0.05
-    ## NT.CREC-NT.WO     NT.CREC-NT.WO 0.196646950 FALSE      0.05
-    ## NT.SM-NT.WO         NT.SM-NT.WO 0.019178762  TRUE      0.05
-    ## CT.CREC-UN.CREC CT.CREC-UN.CREC 0.199364133 FALSE      0.05
-    ## CT.SM-UN.CREC     CT.SM-UN.CREC 0.028872961  TRUE      0.05
-    ## CT.WO-UN.CREC     CT.WO-UN.CREC 0.883304802 FALSE      0.05
-    ## NT.CREC-UN.CREC NT.CREC-UN.CREC 0.197632672 FALSE      0.05
-    ## NT.SM-UN.CREC     NT.SM-UN.CREC 0.022610021  TRUE      0.05
-    ## NT.WO-UN.CREC     NT.WO-UN.CREC 0.998571034 FALSE      0.05
-    ## CT.CREC-UN.SM     CT.CREC-UN.SM 0.833129246 FALSE      0.05
-    ## CT.SM-UN.SM         CT.SM-UN.SM 0.236343606 FALSE      0.05
-    ## CT.WO-UN.SM         CT.WO-UN.SM 0.451735228 FALSE      0.05
-    ## NT.CREC-UN.SM     NT.CREC-UN.SM 0.696394037 FALSE      0.05
-    ## NT.SM-UN.SM         NT.SM-UN.SM 0.192841292 FALSE      0.05
-    ## NT.WO-UN.SM         NT.WO-UN.SM 0.288167371 FALSE      0.05
-    ## UN.CREC-UN.SM     UN.CREC-UN.SM 0.296470439 FALSE      0.05
-    ## CT.CREC-UN.WO     CT.CREC-UN.WO 0.051209156 FALSE      0.05
-    ## CT.SM-UN.WO         CT.SM-UN.WO 0.007027385  TRUE      0.05
-    ## CT.WO-UN.WO         CT.WO-UN.WO 0.381466390 FALSE      0.05
-    ## NT.CREC-UN.WO     NT.CREC-UN.WO 0.045053031  TRUE      0.05
-    ## NT.SM-UN.WO         NT.SM-UN.WO 0.005393912  TRUE      0.05
-    ## NT.WO-UN.WO         NT.WO-UN.WO 0.441272882 FALSE      0.05
-    ## UN.CREC-UN.WO     UN.CREC-UN.WO 0.447795524 FALSE      0.05
-    ## UN.SM-UN.WO         UN.SM-UN.WO 0.090926208 FALSE      0.05
-    ## 
-    ## 
-
-    ##     Group Letter MonoLetter
-    ## 1 CT.CREC   abcd       abcd
-    ## 2   CT.SM     ab       ab  
-    ## 3   CT.WO    acd       a cd
-    ## 4 NT.CREC    abc       abc 
-    ## 5   NT.SM      b        b  
-    ## 6   NT.WO     cd         cd
-    ## 7 UN.CREC     cd         cd
-    ## 8   UN.SM   abcd       abcd
-    ## 9   UN.WO      d          d
 
 #### nirK - CREC
 
@@ -1099,146 +886,6 @@ tukey_wo_nirk
 
 ### Statistics - nirS
 
-#### nirS - all sites
-
-**Normality:** All 9 are normal after log transformation
-
-``` r
-all_ddpcr_data %>% 
-  filter(site != "GR", till != "MT", amend == "U",target_gene == "nirS") %>%
-  group_by(site, till, amend, target_gene) %>% 
-  summarise(
-    normality_p = shapiro.test(log(copies_per_g))$p.value
-  ) %>%
-  arrange(normality_p)
-```
-
-    ## # A tibble: 9 × 5
-    ## # Groups:   site, till, amend [9]
-    ##   site  till  amend target_gene normality_p
-    ##   <chr> <chr> <chr> <chr>             <dbl>
-    ## 1 SM    CT    U     nirS              0.110
-    ## 2 SM    UN    U     nirS              0.235
-    ## 3 SM    NT    U     nirS              0.278
-    ## 4 CREC  NT    U     nirS              0.563
-    ## 5 WO    CT    U     nirS              0.586
-    ## 6 WO    NT    U     nirS              0.625
-    ## 7 CREC  CT    U     nirS              0.681
-    ## 8 CREC  UN    U     nirS              0.827
-    ## 9 WO    UN    U     nirS              0.918
-
-**Variance:** unequal
-
-``` r
-bartlett.test(
-  log(copies_per_g) ~ interaction(till, site),
-  data = 
-    all_ddpcr_data %>% 
-    filter(site != "GR", till != "MT", amend == "U",target_gene == "nirS") 
-)
-```
-
-    ## 
-    ##  Bartlett test of homogeneity of variances
-    ## 
-    ## data:  log(copies_per_g) by interaction(till, site)
-    ## Bartlett's K-squared = 27.503, df = 8, p-value = 0.0005787
-
-**Statistics:**: Welch’s ANOVA
-
-``` r
-oneway.test(
-  log(copies_per_g) ~ interaction(site, till), 
-  data = 
-    all_ddpcr_data %>% 
-    filter(site != "GR", till!= "MT", amend == "U", target_gene == "nirS"),
-  var.equal = FALSE
-)
-```
-
-    ## 
-    ##  One-way analysis of means (not assuming equal variances)
-    ## 
-    ## data:  log(copies_per_g) and interaction(site, till)
-    ## F = 10.546, num df = 8.0000, denom df = 7.8951, p-value = 0.001682
-
-``` r
-gh_nirs_all_sites <- 
-  games_howell_test(
-  log_copies_per_g ~ site_till,
-  data = 
-    all_ddpcr_data %>% 
-    filter(site != "GR", till!= "MT", amend == "U", target_gene == "nirS") %>% 
-    mutate(
-      log_copies_per_g = log(copies_per_g),
-      site_till = str_c(site, till, sep = "-")
-    )
-) %>% 
-  mutate(
-    across(c(group1, group2), ~(str_replace_all(., "-", "."))),
-    comparison = str_c(group1, "-", group2)
-  )
-
-cldList(comparison = gh_nirs_all_sites$comparison,
-        p.value    = gh_nirs_all_sites$p.adj,
-        threshold  = 0.05,
-        print.comp = TRUE
-        )
-```
-
-    ## 
-    ##  
-    ##                     Comparisons p.value Value Threshold
-    ## CREC.CT-CREC.NT CREC.CT-CREC.NT   0.972 FALSE      0.05
-    ## CREC.CT-CREC.UN CREC.CT-CREC.UN   1.000 FALSE      0.05
-    ## CREC.CT-SM.CT     CREC.CT-SM.CT   1.000 FALSE      0.05
-    ## CREC.CT-SM.NT     CREC.CT-SM.NT   0.998 FALSE      0.05
-    ## CREC.CT-SM.UN     CREC.CT-SM.UN   1.000 FALSE      0.05
-    ## CREC.CT-WO.CT     CREC.CT-WO.CT   0.054 FALSE      0.05
-    ## CREC.CT-WO.NT     CREC.CT-WO.NT   0.091 FALSE      0.05
-    ## CREC.CT-WO.UN     CREC.CT-WO.UN   0.042  TRUE      0.05
-    ## CREC.NT-CREC.UN CREC.NT-CREC.UN   0.992 FALSE      0.05
-    ## CREC.NT-SM.CT     CREC.NT-SM.CT   0.999 FALSE      0.05
-    ## CREC.NT-SM.NT     CREC.NT-SM.NT   1.000 FALSE      0.05
-    ## CREC.NT-SM.UN     CREC.NT-SM.UN   0.982 FALSE      0.05
-    ## CREC.NT-WO.CT     CREC.NT-WO.CT   0.190 FALSE      0.05
-    ## CREC.NT-WO.NT     CREC.NT-WO.NT   0.060 FALSE      0.05
-    ## CREC.NT-WO.UN     CREC.NT-WO.UN   0.084 FALSE      0.05
-    ## CREC.UN-SM.CT     CREC.UN-SM.CT   1.000 FALSE      0.05
-    ## CREC.UN-SM.NT     CREC.UN-SM.NT   0.998 FALSE      0.05
-    ## CREC.UN-SM.UN     CREC.UN-SM.UN   0.999 FALSE      0.05
-    ## CREC.UN-WO.CT     CREC.UN-WO.CT   0.041  TRUE      0.05
-    ## CREC.UN-WO.NT     CREC.UN-WO.NT   0.076 FALSE      0.05
-    ## CREC.UN-WO.UN     CREC.UN-WO.UN   0.028  TRUE      0.05
-    ## SM.CT-SM.NT         SM.CT-SM.NT   0.998 FALSE      0.05
-    ## SM.CT-SM.UN         SM.CT-SM.UN   1.000 FALSE      0.05
-    ## SM.CT-WO.CT         SM.CT-WO.CT   0.554 FALSE      0.05
-    ## SM.CT-WO.NT         SM.CT-WO.NT   0.202 FALSE      0.05
-    ## SM.CT-WO.UN         SM.CT-WO.UN   0.287 FALSE      0.05
-    ## SM.NT-SM.UN         SM.NT-SM.UN   0.996 FALSE      0.05
-    ## SM.NT-WO.CT         SM.NT-WO.CT   0.907 FALSE      0.05
-    ## SM.NT-WO.NT         SM.NT-WO.NT   0.752 FALSE      0.05
-    ## SM.NT-WO.UN         SM.NT-WO.UN   0.810 FALSE      0.05
-    ## SM.UN-WO.CT         SM.UN-WO.CT   0.420 FALSE      0.05
-    ## SM.UN-WO.NT         SM.UN-WO.NT   0.101 FALSE      0.05
-    ## SM.UN-WO.UN         SM.UN-WO.UN   0.133 FALSE      0.05
-    ## WO.CT-WO.NT         WO.CT-WO.NT   0.447 FALSE      0.05
-    ## WO.CT-WO.UN         WO.CT-WO.UN   0.585 FALSE      0.05
-    ## WO.NT-WO.UN         WO.NT-WO.UN   0.978 FALSE      0.05
-    ## 
-    ## 
-
-    ##     Group Letter MonoLetter
-    ## 1 CREC.CT     ab        ab 
-    ## 2 CREC.NT    abc        abc
-    ## 3 CREC.UN      a        a  
-    ## 4   SM.CT    abc        abc
-    ## 5   SM.NT    abc        abc
-    ## 6   SM.UN    abc        abc
-    ## 7   WO.CT     bc         bc
-    ## 8   WO.NT    abc        abc
-    ## 9   WO.UN      c          c
-
 #### nirS - CREC
 
 **Normality:** All normal.
@@ -1406,144 +1053,6 @@ aov(
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ### Statistics gltA
-
-#### gltA - all sites
-
-**Normality:** All approximately normal
-
-``` r
-all_ddpcr_data %>% 
-  filter(site != "GR", till != "MT", amend == "U",target_gene == "gltA") %>%
-  group_by(site, till, amend, target_gene) %>% 
-  summarise(
-    normality_p = shapiro.test(copies_per_g)$p.value
-  ) %>%
-  arrange(normality_p)
-```
-
-    ## # A tibble: 9 × 5
-    ## # Groups:   site, till, amend [9]
-    ##   site  till  amend target_gene normality_p
-    ##   <chr> <chr> <chr> <chr>             <dbl>
-    ## 1 SM    CT    U     gltA             0.0574
-    ## 2 CREC  CT    U     gltA             0.126 
-    ## 3 SM    NT    U     gltA             0.181 
-    ## 4 WO    NT    U     gltA             0.198 
-    ## 5 CREC  UN    U     gltA             0.313 
-    ## 6 SM    UN    U     gltA             0.431 
-    ## 7 WO    CT    U     gltA             0.572 
-    ## 8 CREC  NT    U     gltA             0.582 
-    ## 9 WO    UN    U     gltA             0.973
-
-**Variances:** Very much unequal variances
-
-``` r
-bartlett.test(
-  copies_per_g ~ interaction(till, site),
-  data = 
-    all_ddpcr_data %>% 
-    filter(site != "GR", till != "MT", amend == "U",target_gene == "gltA") 
-)
-```
-
-    ## 
-    ##  Bartlett test of homogeneity of variances
-    ## 
-    ## data:  copies_per_g by interaction(till, site)
-    ## Bartlett's K-squared = 24.484, df = 8, p-value = 0.0019
-
-**Statistics:** Welch’s ANOVA
-
-``` r
-oneway.test(
-  copies_per_g ~ interaction(till, site),
-  data = 
-    all_ddpcr_data %>% 
-    filter(site != "GR", till != "MT", amend == "U",target_gene == "gltA") 
-)
-```
-
-    ## 
-    ##  One-way analysis of means (not assuming equal variances)
-    ## 
-    ## data:  copies_per_g and interaction(till, site)
-    ## F = 7.3817, num df = 8.0000, denom df = 9.2138, p-value = 0.003253
-
-``` r
-gh_glta_all_sites <-
-  games_howell_test(
-    copies_per_g ~ site_till,
-    data = 
-      all_ddpcr_data %>% 
-      filter(site != "GR", till!= "MT", amend == "U", target_gene == "gltA") %>% 
-      mutate(
-        site_till = str_c(site, till, sep = "-")
-      )
-  ) %>% 
-  mutate(
-    across(c(group1, group2), ~(str_replace_all(., "-", "."))),
-    comparison = str_c(group1, "-", group2)
-  ) 
-
-cldList(comparison = gh_glta_all_sites$comparison,
-        p.value    = gh_glta_all_sites$p.adj,
-        threshold  = 0.05,
-        print.comp = TRUE
-        )
-```
-
-    ## 
-    ##  
-    ##                     Comparisons p.value Value Threshold
-    ## CREC.CT-CREC.NT CREC.CT-CREC.NT   1.000 FALSE      0.05
-    ## CREC.CT-CREC.UN CREC.CT-CREC.UN   0.203 FALSE      0.05
-    ## CREC.CT-SM.CT     CREC.CT-SM.CT   0.999 FALSE      0.05
-    ## CREC.CT-SM.NT     CREC.CT-SM.NT   1.000 FALSE      0.05
-    ## CREC.CT-SM.UN     CREC.CT-SM.UN   0.487 FALSE      0.05
-    ## CREC.CT-WO.CT     CREC.CT-WO.CT   0.153 FALSE      0.05
-    ## CREC.CT-WO.NT     CREC.CT-WO.NT   0.017  TRUE      0.05
-    ## CREC.CT-WO.UN     CREC.CT-WO.UN   0.560 FALSE      0.05
-    ## CREC.NT-CREC.UN CREC.NT-CREC.UN   0.225 FALSE      0.05
-    ## CREC.NT-SM.CT     CREC.NT-SM.CT   0.997 FALSE      0.05
-    ## CREC.NT-SM.NT     CREC.NT-SM.NT   1.000 FALSE      0.05
-    ## CREC.NT-SM.UN     CREC.NT-SM.UN   0.981 FALSE      0.05
-    ## CREC.NT-WO.CT     CREC.NT-WO.CT   0.558 FALSE      0.05
-    ## CREC.NT-WO.NT     CREC.NT-WO.NT   0.018  TRUE      0.05
-    ## CREC.NT-WO.UN     CREC.NT-WO.UN   0.588 FALSE      0.05
-    ## CREC.UN-SM.CT     CREC.UN-SM.CT   0.168 FALSE      0.05
-    ## CREC.UN-SM.NT     CREC.UN-SM.NT   0.200 FALSE      0.05
-    ## CREC.UN-SM.UN     CREC.UN-SM.UN   0.285 FALSE      0.05
-    ## CREC.UN-WO.CT     CREC.UN-WO.CT   0.472 FALSE      0.05
-    ## CREC.UN-WO.NT     CREC.UN-WO.NT   0.996 FALSE      0.05
-    ## CREC.UN-WO.UN     CREC.UN-WO.UN   1.000 FALSE      0.05
-    ## SM.CT-SM.NT         SM.CT-SM.NT   1.000 FALSE      0.05
-    ## SM.CT-SM.UN         SM.CT-SM.UN   0.624 FALSE      0.05
-    ## SM.CT-WO.CT         SM.CT-WO.CT   0.196 FALSE      0.05
-    ## SM.CT-WO.NT         SM.CT-WO.NT   0.008  TRUE      0.05
-    ## SM.CT-WO.UN         SM.CT-WO.UN   0.528 FALSE      0.05
-    ## SM.NT-SM.UN         SM.NT-SM.UN   0.756 FALSE      0.05
-    ## SM.NT-WO.CT         SM.NT-WO.CT   0.217 FALSE      0.05
-    ## SM.NT-WO.NT         SM.NT-WO.NT   0.012  TRUE      0.05
-    ## SM.NT-WO.UN         SM.NT-WO.UN   0.561 FALSE      0.05
-    ## SM.UN-WO.CT         SM.UN-WO.CT   0.456 FALSE      0.05
-    ## SM.UN-WO.NT         SM.UN-WO.NT   0.032  TRUE      0.05
-    ## SM.UN-WO.UN         SM.UN-WO.UN   0.640 FALSE      0.05
-    ## WO.CT-WO.NT         WO.CT-WO.NT   0.047  TRUE      0.05
-    ## WO.CT-WO.UN         WO.CT-WO.UN   0.769 FALSE      0.05
-    ## WO.NT-WO.UN         WO.NT-WO.UN   1.000 FALSE      0.05
-    ## 
-    ## 
-
-    ##     Group Letter MonoLetter
-    ## 1 CREC.CT      a         a 
-    ## 2 CREC.NT      a         a 
-    ## 3 CREC.UN     ab         ab
-    ## 4   SM.CT      a         a 
-    ## 5   SM.NT      a         a 
-    ## 6   SM.UN      a         a 
-    ## 7   WO.CT      a         a 
-    ## 8   WO.NT      b          b
-    ## 9   WO.UN     ab         ab
 
 #### gltA - CREC
 
@@ -1725,141 +1234,6 @@ aov(
     ## Residuals    7 7.599e+14 1.086e+14
 
 ### Statistics - dsrAB
-
-#### dsrAB - all sites
-
-**Normality:** Cannot get WO-NT-U normal, even upon transformations
-
-``` r
-all_ddpcr_data %>% 
-  filter(site != "GR", till != "MT", amend == "U",target_gene == "dsrAB") %>%
-  group_by(site, till, amend, target_gene) %>% 
-  summarise(
-    normality_p = shapiro.test(copies_per_g)$p.value
-  ) %>%
-  arrange(normality_p)
-```
-
-    ## # A tibble: 9 × 5
-    ## # Groups:   site, till, amend [9]
-    ##   site  till  amend target_gene normality_p
-    ##   <chr> <chr> <chr> <chr>             <dbl>
-    ## 1 WO    NT    U     dsrAB            0.0340
-    ## 2 WO    UN    U     dsrAB            0.0474
-    ## 3 SM    UN    U     dsrAB            0.192 
-    ## 4 SM    NT    U     dsrAB            0.199 
-    ## 5 CREC  NT    U     dsrAB            0.556 
-    ## 6 WO    CT    U     dsrAB            0.617 
-    ## 7 SM    CT    U     dsrAB            0.707 
-    ## 8 CREC  CT    U     dsrAB            0.873 
-    ## 9 CREC  UN    U     dsrAB            0.891
-
-**Variances:** Equal variances
-
-``` r
-leveneTest( 
-  copies_per_g ~ interaction(till, site),
-  data = 
-    all_ddpcr_data %>% 
-    filter(site != "GR", till != "MT", amend == "U",target_gene == "dsrAB") 
-) 
-```
-
-    ## Levene's Test for Homogeneity of Variance (center = median)
-    ##       Df F value Pr(>F)
-    ## group  8  0.8225 0.5916
-    ##       22
-
-**Statistical test:** Kruskal-Wallis test
-
-``` r
-kruskal.test(
-  copies_per_g ~ interaction(till, site), 
-  data = 
-    all_ddpcr_data %>% 
-    filter(site != "GR", till != "MT", amend == "U",target_gene == "dsrAB")
-)
-```
-
-    ## 
-    ##  Kruskal-Wallis rank sum test
-    ## 
-    ## data:  copies_per_g by interaction(till, site)
-    ## Kruskal-Wallis chi-squared = 22.84, df = 8, p-value = 0.003576
-
-``` r
-dunn_dsrab <- 
-  dunnTest(
-    copies_per_g ~ interaction(till, site), 
-    data = 
-      all_ddpcr_data %>% 
-      filter(site != "GR", till != "MT", amend == "U", target_gene == "dsrAB"),
-    method = "bh"
-  )
-
-
-
-dunn_pt_dsrab <- dunn_dsrab$res
-
-cldList(comparison = dunn_pt_dsrab$Comparison,
-        p.value    = dunn_pt_dsrab$P.adj,
-        threshold  = 0.05,
-        print.comp = TRUE
-        )
-```
-
-    ## 
-    ##  
-    ##                     Comparisons    p.value Value Threshold
-    ## CT.CREC-CT.SM     CT.CREC-CT.SM 0.29662576 FALSE      0.05
-    ## CT.CREC-CT.WO     CT.CREC-CT.WO 0.93507060 FALSE      0.05
-    ## CT.SM-CT.WO         CT.SM-CT.WO 0.26338414 FALSE      0.05
-    ## CT.CREC-NT.CREC CT.CREC-NT.CREC 0.94536628 FALSE      0.05
-    ## CT.SM-NT.CREC     CT.SM-NT.CREC 0.29186489 FALSE      0.05
-    ## CT.WO-NT.CREC     CT.WO-NT.CREC 0.97128144 FALSE      0.05
-    ## CT.CREC-NT.SM     CT.CREC-NT.SM 0.31141911 FALSE      0.05
-    ## CT.SM-NT.SM         CT.SM-NT.SM 0.94010703 FALSE      0.05
-    ## CT.WO-NT.SM         CT.WO-NT.SM 0.32061094 FALSE      0.05
-    ## NT.CREC-NT.SM     NT.CREC-NT.SM 0.32034137 FALSE      0.05
-    ## CT.CREC-NT.WO     CT.CREC-NT.WO 0.77189671 FALSE      0.05
-    ## CT.SM-NT.WO         CT.SM-NT.WO 0.17313151 FALSE      0.05
-    ## CT.WO-NT.WO         CT.WO-NT.WO 0.67099630 FALSE      0.05
-    ## NT.CREC-NT.WO     NT.CREC-NT.WO 0.70801666 FALSE      0.05
-    ## NT.SM-NT.WO         NT.SM-NT.WO 0.23725763 FALSE      0.05
-    ## CT.CREC-UN.CREC CT.CREC-UN.CREC 0.31345060 FALSE      0.05
-    ## CT.SM-UN.CREC     CT.SM-UN.CREC 0.01960652  TRUE      0.05
-    ## CT.WO-UN.CREC     CT.WO-UN.CREC 0.28364446 FALSE      0.05
-    ## NT.CREC-UN.CREC NT.CREC-UN.CREC 0.29632492 FALSE      0.05
-    ## NT.SM-UN.CREC     NT.SM-UN.CREC 0.03190000  TRUE      0.05
-    ## NT.WO-UN.CREC     NT.WO-UN.CREC 0.55215739 FALSE      0.05
-    ## CT.CREC-UN.SM     CT.CREC-UN.SM 0.54666433 FALSE      0.05
-    ## CT.SM-UN.SM         CT.SM-UN.SM 0.57344866 FALSE      0.05
-    ## CT.WO-UN.SM         CT.WO-UN.SM 0.59638660 FALSE      0.05
-    ## NT.CREC-UN.SM     NT.CREC-UN.SM 0.57112786 FALSE      0.05
-    ## NT.SM-UN.SM         NT.SM-UN.SM 0.66467769 FALSE      0.05
-    ## NT.WO-UN.SM         NT.WO-UN.SM 0.32456534 FALSE      0.05
-    ## UN.CREC-UN.SM     UN.CREC-UN.SM 0.08576174 FALSE      0.05
-    ## CT.CREC-UN.WO     CT.CREC-UN.WO 0.28993010 FALSE      0.05
-    ## CT.SM-UN.WO         CT.SM-UN.WO 0.01886871  TRUE      0.05
-    ## CT.WO-UN.WO         CT.WO-UN.WO 0.22706001 FALSE      0.05
-    ## NT.CREC-UN.WO     NT.CREC-UN.WO 0.26094991 FALSE      0.05
-    ## NT.SM-UN.WO         NT.SM-UN.WO 0.02006074  TRUE      0.05
-    ## NT.WO-UN.WO         NT.WO-UN.WO 0.34145638 FALSE      0.05
-    ## UN.CREC-UN.WO     UN.CREC-UN.WO 0.76300526 FALSE      0.05
-    ## UN.SM-UN.WO         UN.SM-UN.WO 0.04813998  TRUE      0.05
-    ## 
-    ## 
-
-    ##     Group Letter MonoLetter
-    ## 1 CT.CREC    abc        abc
-    ## 2   CT.SM      a        a  
-    ## 3   CT.WO    abc        abc
-    ## 4 NT.CREC    abc        abc
-    ## 5   NT.SM      a        a  
-    ## 6   NT.WO    abc        abc
-    ## 7 UN.CREC     bc         bc
-    ## 8   UN.SM     ab        ab 
-    ## 9   UN.WO      c          c
 
 #### dsrAB - CREC
 
@@ -2065,139 +1439,6 @@ dunnTest(
 
 ### Statistics - mcrA
 
-#### mcrA - all sites
-
-**Normality:** Cannot find a transformation that will work for all 9
-
-``` r
-all_ddpcr_data %>% 
-  filter(site != "GR", till != "MT", amend == "U",target_gene == "mcrA") %>%
-  group_by(site, till, amend, target_gene) %>% 
-  summarise(
-    normality_p = shapiro.test(copies_per_g)$p.value
-  ) %>%
-  arrange(normality_p)
-```
-
-    ## # A tibble: 9 × 5
-    ## # Groups:   site, till, amend [9]
-    ##   site  till  amend target_gene normality_p
-    ##   <chr> <chr> <chr> <chr>             <dbl>
-    ## 1 WO    NT    U     mcrA             0.0203
-    ## 2 CREC  CT    U     mcrA             0.0513
-    ## 3 SM    NT    U     mcrA             0.103 
-    ## 4 SM    UN    U     mcrA             0.107 
-    ## 5 SM    CT    U     mcrA             0.264 
-    ## 6 WO    CT    U     mcrA             0.478 
-    ## 7 CREC  UN    U     mcrA             0.553 
-    ## 8 CREC  NT    U     mcrA             0.584 
-    ## 9 WO    UN    U     mcrA             0.634
-
-**Variances:** Equal
-
-``` r
-leveneTest(
-  copies_per_g ~ interaction(till, site),
-  data = 
-    all_ddpcr_data %>% 
-    filter(site != "GR", till != "MT", amend == "U",target_gene == "mcrA") 
-)
-```
-
-    ## Levene's Test for Homogeneity of Variance (center = median)
-    ##       Df F value Pr(>F)
-    ## group  8  0.6921 0.6948
-    ##       24
-
-**Statistics:** Kruskal-Wallis
-
-``` r
-kruskal.test(
-  copies_per_g ~ interaction(till, site), 
-  data = 
-    all_ddpcr_data %>% 
-    filter(site != "GR", till != "MT", amend == "U", target_gene == "mcrA")
-)
-```
-
-    ## 
-    ##  Kruskal-Wallis rank sum test
-    ## 
-    ## data:  copies_per_g by interaction(till, site)
-    ## Kruskal-Wallis chi-squared = 22.916, df = 8, p-value = 0.003474
-
-``` r
-dunn_mcra_all_sites <-
-  dunnTest(
-    copies_per_g ~ interaction(till, site), 
-    data = 
-      all_ddpcr_data %>% 
-      filter(site != "GR", till != "MT", amend == "U", target_gene == "mcrA"),
-    method = "bh"
-  )
-
-dunn_pt_mcra <- dunn_mcra_all_sites$res
-
-cldList(comparison = dunn_pt_dsrab$Comparison,
-        p.value    = dunn_pt_dsrab$P.adj,
-        threshold  = 0.05,
-        print.comp = TRUE
-        )
-```
-
-    ## 
-    ##  
-    ##                     Comparisons    p.value Value Threshold
-    ## CT.CREC-CT.SM     CT.CREC-CT.SM 0.29662576 FALSE      0.05
-    ## CT.CREC-CT.WO     CT.CREC-CT.WO 0.93507060 FALSE      0.05
-    ## CT.SM-CT.WO         CT.SM-CT.WO 0.26338414 FALSE      0.05
-    ## CT.CREC-NT.CREC CT.CREC-NT.CREC 0.94536628 FALSE      0.05
-    ## CT.SM-NT.CREC     CT.SM-NT.CREC 0.29186489 FALSE      0.05
-    ## CT.WO-NT.CREC     CT.WO-NT.CREC 0.97128144 FALSE      0.05
-    ## CT.CREC-NT.SM     CT.CREC-NT.SM 0.31141911 FALSE      0.05
-    ## CT.SM-NT.SM         CT.SM-NT.SM 0.94010703 FALSE      0.05
-    ## CT.WO-NT.SM         CT.WO-NT.SM 0.32061094 FALSE      0.05
-    ## NT.CREC-NT.SM     NT.CREC-NT.SM 0.32034137 FALSE      0.05
-    ## CT.CREC-NT.WO     CT.CREC-NT.WO 0.77189671 FALSE      0.05
-    ## CT.SM-NT.WO         CT.SM-NT.WO 0.17313151 FALSE      0.05
-    ## CT.WO-NT.WO         CT.WO-NT.WO 0.67099630 FALSE      0.05
-    ## NT.CREC-NT.WO     NT.CREC-NT.WO 0.70801666 FALSE      0.05
-    ## NT.SM-NT.WO         NT.SM-NT.WO 0.23725763 FALSE      0.05
-    ## CT.CREC-UN.CREC CT.CREC-UN.CREC 0.31345060 FALSE      0.05
-    ## CT.SM-UN.CREC     CT.SM-UN.CREC 0.01960652  TRUE      0.05
-    ## CT.WO-UN.CREC     CT.WO-UN.CREC 0.28364446 FALSE      0.05
-    ## NT.CREC-UN.CREC NT.CREC-UN.CREC 0.29632492 FALSE      0.05
-    ## NT.SM-UN.CREC     NT.SM-UN.CREC 0.03190000  TRUE      0.05
-    ## NT.WO-UN.CREC     NT.WO-UN.CREC 0.55215739 FALSE      0.05
-    ## CT.CREC-UN.SM     CT.CREC-UN.SM 0.54666433 FALSE      0.05
-    ## CT.SM-UN.SM         CT.SM-UN.SM 0.57344866 FALSE      0.05
-    ## CT.WO-UN.SM         CT.WO-UN.SM 0.59638660 FALSE      0.05
-    ## NT.CREC-UN.SM     NT.CREC-UN.SM 0.57112786 FALSE      0.05
-    ## NT.SM-UN.SM         NT.SM-UN.SM 0.66467769 FALSE      0.05
-    ## NT.WO-UN.SM         NT.WO-UN.SM 0.32456534 FALSE      0.05
-    ## UN.CREC-UN.SM     UN.CREC-UN.SM 0.08576174 FALSE      0.05
-    ## CT.CREC-UN.WO     CT.CREC-UN.WO 0.28993010 FALSE      0.05
-    ## CT.SM-UN.WO         CT.SM-UN.WO 0.01886871  TRUE      0.05
-    ## CT.WO-UN.WO         CT.WO-UN.WO 0.22706001 FALSE      0.05
-    ## NT.CREC-UN.WO     NT.CREC-UN.WO 0.26094991 FALSE      0.05
-    ## NT.SM-UN.WO         NT.SM-UN.WO 0.02006074  TRUE      0.05
-    ## NT.WO-UN.WO         NT.WO-UN.WO 0.34145638 FALSE      0.05
-    ## UN.CREC-UN.WO     UN.CREC-UN.WO 0.76300526 FALSE      0.05
-    ## UN.SM-UN.WO         UN.SM-UN.WO 0.04813998  TRUE      0.05
-    ## 
-    ## 
-
-    ##     Group Letter MonoLetter
-    ## 1 CT.CREC    abc        abc
-    ## 2   CT.SM      a        a  
-    ## 3   CT.WO    abc        abc
-    ## 4 NT.CREC    abc        abc
-    ## 5   NT.SM      a        a  
-    ## 6   NT.WO    abc        abc
-    ## 7 UN.CREC     bc         bc
-    ## 8   UN.SM     ab        ab 
-    ## 9   UN.WO      c          c
-
 #### mcrA - CREC
 
 **Normality:** All approximately normal
@@ -2379,7 +1620,7 @@ aov(
     ## till         2 0.7127  0.3563   1.321  0.326
     ## Residuals    7 1.8880  0.2697
 
-## Figure - stacked bars
+## Figure 2a - stacked bars
 
 ``` r
 total_anaerobe <-
@@ -2454,7 +1695,7 @@ all_ddpcr_data %>%
   )
 ```
 
-![](ddPCR_files/figure-gfm/unnamed-chunk-80-1.png)<!-- -->
+![](ddPCR_files/figure-gfm/unnamed-chunk-64-1.png)<!-- -->
 
 ``` r
 total_anaerobe
@@ -2474,144 +1715,11 @@ total_anaerobe
     ##  8 CREC  MT    U     <NA>                   2             62898705.     5
     ##  9 CREC  MT    U     <NA>                   3             78703568.     5
     ## 10 CREC  NT    A     <NA>                   1            119073250.     5
-    ## # … with 38 more rows
+    ## # ℹ 38 more rows
 
-### Statistics - total anaerobe
+## Statistics reported in Supplementary Table S2 (total anaerobe)
 
-#### total anaerobe - all sites
-
-**Normality:** We can’t know if WO-UN-U is normal because n = 2. Treat
-as non-normal.
-
-``` r
-total_anaerobe %>% 
-  filter(site != "GR", till != "MT", amend == "U") %>%
-  filter(!(site == "WO" & till == "UN" )) %>%  #excluding n = 2 group
-  group_by(site, till, amend) %>% 
-  summarise(
-    normality_p = shapiro.test(anaerobe_copies_per_g)$p.value
-  ) %>%
-  arrange(normality_p)
-```
-
-    ## # A tibble: 8 × 4
-    ## # Groups:   site, till [8]
-    ##   site  till  amend normality_p
-    ##   <chr> <chr> <chr>       <dbl>
-    ## 1 CREC  UN    U          0.0752
-    ## 2 CREC  NT    U          0.250 
-    ## 3 SM    UN    U          0.423 
-    ## 4 SM    CT    U          0.588 
-    ## 5 WO    CT    U          0.683 
-    ## 6 WO    NT    U          0.723 
-    ## 7 SM    NT    U          0.804 
-    ## 8 CREC  CT    U          0.860
-
-**Variances:** Variances are not equal
-
-``` r
-bartlett.test(
-  anaerobe_copies_per_g ~ interaction(site, till),
-  data = 
-    total_anaerobe %>% 
-    filter(site != "GR", till != "MT", amend == "U")
-)
-```
-
-    ## 
-    ##  Bartlett test of homogeneity of variances
-    ## 
-    ## data:  anaerobe_copies_per_g by interaction(site, till)
-    ## Bartlett's K-squared = 16.814, df = 8, p-value = 0.0321
-
-**Statistics:** Kruskal Wallis
-
-``` r
-kruskal.test(
-  anaerobe_copies_per_g ~ interaction(site, till),
-  data = total_anaerobe %>%
-    filter(site != "GR", till != "MT", amend == "U")
-)
-```
-
-    ## 
-    ##  Kruskal-Wallis rank sum test
-    ## 
-    ## data:  anaerobe_copies_per_g by interaction(site, till)
-    ## Kruskal-Wallis chi-squared = 22.416, df = 8, p-value = 0.004201
-
-``` r
-dunn_anaerobe_all_sites <- 
-  dunnTest(
-    anaerobe_copies_per_g ~ interaction(site, till),
-    data = total_anaerobe %>%
-      filter(site != "GR", till != "MT", amend == "U"),
-      method = "bh"
-  )
-
-dunn_all_pt <- dunn_anaerobe_all_sites$res
-
-cldList(comparison = dunn_all_pt$Comparison,
-        p.value    = dunn_all_pt$P.adj,
-        threshold  = 0.05,
-        print.comp = TRUE
-        )
-```
-
-    ## 
-    ##  
-    ##                     Comparisons    p.value Value Threshold
-    ## CREC.CT-CREC.NT CREC.CT-CREC.NT 0.99816616 FALSE      0.05
-    ## CREC.CT-CREC.UN CREC.CT-CREC.UN 0.30383391 FALSE      0.05
-    ## CREC.NT-CREC.UN CREC.NT-CREC.UN 0.30271729 FALSE      0.05
-    ## CREC.CT-SM.CT     CREC.CT-SM.CT 0.37642061 FALSE      0.05
-    ## CREC.NT-SM.CT     CREC.NT-SM.CT 0.37775761 FALSE      0.05
-    ## CREC.UN-SM.CT     CREC.UN-SM.CT 0.03891185  TRUE      0.05
-    ## CREC.CT-SM.NT     CREC.CT-SM.NT 0.36033265 FALSE      0.05
-    ## CREC.NT-SM.NT     CREC.NT-SM.NT 0.39319469 FALSE      0.05
-    ## CREC.UN-SM.NT     CREC.UN-SM.NT 0.04959687  TRUE      0.05
-    ## SM.CT-SM.NT         SM.CT-SM.NT 1.00000000 FALSE      0.05
-    ## CREC.CT-SM.UN     CREC.CT-SM.UN 0.95743229 FALSE      0.05
-    ## CREC.NT-SM.UN     CREC.NT-SM.UN 0.98187764 FALSE      0.05
-    ## CREC.UN-SM.UN     CREC.UN-SM.UN 0.31667581 FALSE      0.05
-    ## SM.CT-SM.UN         SM.CT-SM.UN 0.37929752 FALSE      0.05
-    ## SM.NT-SM.UN         SM.NT-SM.UN 0.36414476 FALSE      0.05
-    ## CREC.CT-WO.CT     CREC.CT-WO.CT 0.42994188 FALSE      0.05
-    ## CREC.NT-WO.CT     CREC.NT-WO.CT 0.39349751 FALSE      0.05
-    ## CREC.UN-WO.CT     CREC.UN-WO.CT 0.73272082 FALSE      0.05
-    ## SM.CT-WO.CT         SM.CT-WO.CT 0.11238606 FALSE      0.05
-    ## SM.NT-WO.CT         SM.NT-WO.CT 0.11172020 FALSE      0.05
-    ## SM.UN-WO.CT         SM.UN-WO.CT 0.44889116 FALSE      0.05
-    ## CREC.CT-WO.NT     CREC.CT-WO.NT 0.31280157 FALSE      0.05
-    ## CREC.NT-WO.NT     CREC.NT-WO.NT 0.29398192 FALSE      0.05
-    ## CREC.UN-WO.NT     CREC.UN-WO.NT 0.98478749 FALSE      0.05
-    ## SM.CT-WO.NT         SM.CT-WO.NT 0.03967750  TRUE      0.05
-    ## SM.NT-WO.NT         SM.NT-WO.NT 0.05604457 FALSE      0.05
-    ## SM.UN-WO.NT         SM.UN-WO.NT 0.32408951 FALSE      0.05
-    ## WO.CT-WO.NT         WO.CT-WO.NT 0.71220868 FALSE      0.05
-    ## CREC.CT-WO.UN     CREC.CT-WO.UN 0.15285273 FALSE      0.05
-    ## CREC.NT-WO.UN     CREC.NT-WO.UN 0.13452207 FALSE      0.05
-    ## CREC.UN-WO.UN     CREC.UN-WO.UN 0.62843641 FALSE      0.05
-    ## SM.CT-WO.UN         SM.CT-WO.UN 0.03178421  TRUE      0.05
-    ## SM.NT-WO.UN         SM.NT-WO.UN 0.05398281 FALSE      0.05
-    ## SM.UN-WO.UN         SM.UN-WO.UN 0.15566111 FALSE      0.05
-    ## WO.CT-WO.UN         WO.CT-WO.UN 0.40992935 FALSE      0.05
-    ## WO.NT-WO.UN         WO.NT-WO.UN 0.64458504 FALSE      0.05
-    ## 
-    ## 
-
-    ##     Group Letter MonoLetter
-    ## 1 CREC.CT    abc        abc
-    ## 2 CREC.NT    abc        abc
-    ## 3 CREC.UN      a        a  
-    ## 4   SM.CT      b         b 
-    ## 5   SM.NT     bc         bc
-    ## 6   SM.UN    abc        abc
-    ## 7   WO.CT    abc        abc
-    ## 8   WO.NT     ac        a c
-    ## 9   WO.UN     ac        a c
-
-#### total anaerobe - CREC
+### total anaerobe - CREC
 
 **Normality:** all approximately normal
 
@@ -2687,7 +1795,7 @@ TukeyHSD(crec_anaer_aov)
     ## UN-MT 64544603  -8688147 137777353 0.0854789
     ## UN-NT 72092033  -1140717 145324783 0.0536380
 
-#### total anaerobe - SM
+### total anaerobe - SM
 
 **Normality:** all approximately normal
 
@@ -2759,7 +1867,7 @@ TukeyHSD(sm_anaer_aov)
     ## UN-CT 44340203.23  14697573 73982834 0.0088871
     ## UN-NT 44302902.06  14660272 73945533 0.0089226
 
-#### total anaerobe - WO
+### total anaerobe - WO
 
 **Normality:**
 
@@ -2832,9 +1940,9 @@ TukeyHSD(wo_aov)
     ## UN-CT 93572559 50577951 136567167 0.0020320
     ## UN-NT 53379644 10385036  96374252 0.0224704
 
-## Tillage - Carrington only
+# Tillage - Carrington only
 
-### Figure - stacked bar
+## Figure - stacked bar (unpublished)
 
 ``` r
 all_ddpcr_data %>% 
@@ -2873,9 +1981,9 @@ all_ddpcr_data %>%
   )
 ```
 
-![](ddPCR_files/figure-gfm/unnamed-chunk-93-1.png)<!-- -->
+![](ddPCR_files/figure-gfm/unnamed-chunk-74-1.png)<!-- -->
 
-### Figure - faceted
+## Figure - faceted (unpublished)
 
 ``` r
 all_ddpcr_data %>% 
@@ -2924,11 +2032,11 @@ all_ddpcr_data %>%
   )
 ```
 
-![](ddPCR_files/figure-gfm/unnamed-chunk-94-1.png)<!-- -->
+![](ddPCR_files/figure-gfm/unnamed-chunk-75-1.png)<!-- -->
 
 # Absolute Abundance: Landscape Position
 
-## Figure - faceted
+## Supplementary Figure S5b - faceted
 
 ``` r
 all_ddpcr_data %>% 
@@ -2979,9 +2087,9 @@ all_ddpcr_data %>%
   )
 ```
 
-![](ddPCR_files/figure-gfm/unnamed-chunk-95-1.png)<!-- -->
+![](ddPCR_files/figure-gfm/unnamed-chunk-76-1.png)<!-- -->
 
-## Figure - stacked bars
+## Supplementary Figure S5a - stacked bars
 
 ``` r
 all_ddpcr_data %>% 
@@ -3027,11 +2135,11 @@ all_ddpcr_data %>%
   )
 ```
 
-![](ddPCR_files/figure-gfm/unnamed-chunk-96-1.png)<!-- -->
+![](ddPCR_files/figure-gfm/unnamed-chunk-77-1.png)<!-- -->
 
 # Absolute Abundance - Manure amendments at Carrington
 
-## Figure - stacked bars
+## Figure 3a - stacked bars
 
 ``` r
 all_ddpcr_data %>% 
@@ -3075,9 +2183,11 @@ all_ddpcr_data %>%
   )
 ```
 
-![](ddPCR_files/figure-gfm/unnamed-chunk-97-1.png)<!-- -->
+![](ddPCR_files/figure-gfm/unnamed-chunk-78-1.png)<!-- -->
 
-### Statistics
+## Statistical Tests reported in Supplementary Table S3 (Total anaerobe)
+
+### total anaerobe - manure effect
 
 #### Check normality
 
@@ -3176,7 +2286,7 @@ t.test(
     ## mean of x mean of y 
     ##  94572959  54136462
 
-## Figure - faceted
+## Figure 3b - faceted
 
 ``` r
 all_ddpcr_data %>% 
@@ -3226,7 +2336,9 @@ all_ddpcr_data %>%
   )
 ```
 
-![](ddPCR_files/figure-gfm/unnamed-chunk-102-1.png)<!-- -->
+![](ddPCR_files/figure-gfm/unnamed-chunk-83-1.png)<!-- -->
+
+## Statistical Tests reported in Supplementary Table S3
 
 ### nirK
 
@@ -3955,36 +3067,403 @@ t.test(
     ## mean of x mean of y 
     ## 428405.17  40177.66
 
-# Absolute abundance- poultry litter amendments @ Sand Mountain
+# PCA of Anaerobe Abundance
 
-## Figure - stacked bar
+## Create tibble for PCA
 
 ``` r
-all_ddpcr_data %>% 
-  group_by(site, till, amend, landscape_position, target_gene) %>% 
+anaerobe_pca_data <-
+  all_ddpcr_data_w_outliers %>% 
+  group_by(site, till, amend, rep,landscape_position, target_gene) %>% 
   summarise(
-    avg_copies_per_g = mean(copies_per_g, na.rm = TRUE),
-    se_copies_per_g = sd(copies_per_g, na.rm = TRUE) / sqrt(n()),
+    copies_per_g = mean(copies_per_g)
   ) %>% 
-  filter(site == "SM", till %in% c("CT", "NT")) %>%
+  pivot_wider(
+    id_cols = c("site", "till", "amend", "rep", "landscape_position"),
+    names_from = "target_gene", 
+    values_from = "copies_per_g"
+  ) %>% 
+  drop_na(dsrAB, gltA, mcrA, nirK) %>% 
+  ungroup() %>% 
+  # Values below were removed because they were outliers
+  filter(
+    !(site == "WO" & till == "UN" & rep == 2),
+    !(site == "CREC" & till == "CT" & amend == "A"& rep == 1),
+    !(site == "CREC" & till == "CT" & amend == "A"& rep == 2),
+    !(site == "SM" & till == "NT" & amend == "U"& rep == 1),
+  ) %>% 
   mutate(
-    across(
-      target_gene, 
-      ~factor(
-        ., 
-        levels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA"),
-        labels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA")
-      )
-    )
+    log_dsrAB = log(dsrAB),
+    log_gltA = log(gltA),
+    log_mcrA = log(mcrA + (0.5*23957.38)),
+    sqrt_nirK = sqrt(nirK),
+    log_nirS = log(nirS),
+  ) 
+```
+
+    ## `summarise()` has grouped output by 'site', 'till', 'amend', 'rep',
+    ## 'landscape_position'. You can override using the `.groups` argument.
+
+## Check normality
+
+``` r
+anaerobe_pca_data %>% 
+  ggplot() +
+  geom_histogram(aes(x = log(dsrAB)))
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](ddPCR_files/figure-gfm/unnamed-chunk-110-1.png)<!-- -->
+
+``` r
+anaerobe_pca_data %>% 
+  ggplot() +
+  geom_histogram(aes(x = log(gltA)))
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](ddPCR_files/figure-gfm/unnamed-chunk-110-2.png)<!-- -->
+
+``` r
+anaerobe_pca_data %>% 
+  ggplot() +
+  geom_histogram(aes(x = log(mcrA+ (0.5*23957.38))))
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](ddPCR_files/figure-gfm/unnamed-chunk-110-3.png)<!-- -->
+
+``` r
+anaerobe_pca_data %>% 
+  ggplot() +
+  geom_histogram(aes(x = sqrt(nirK)))
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](ddPCR_files/figure-gfm/unnamed-chunk-110-4.png)<!-- -->
+
+``` r
+anaerobe_pca_data %>% 
+  ggplot() +
+  geom_histogram(aes(x = log(nirS)))
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](ddPCR_files/figure-gfm/unnamed-chunk-110-5.png)<!-- -->
+
+## Confirm outliers removed
+
+Code originally used to identify outliers
+
+``` r
+grubbs.test(anaerobe_pca_data$log_dsrAB)
+```
+
+    ## 
+    ##  Grubbs test for one outlier
+    ## 
+    ## data:  anaerobe_pca_data$log_dsrAB
+    ## G = 1.97092, U = 0.90756, p-value = 0.9857
+    ## alternative hypothesis: lowest value 14.9706141386213 is an outlier
+
+``` r
+grubbs.test(anaerobe_pca_data$log_gltA) #there is an outlier (CREC-CT-A-1 and CT-A-2)
+```
+
+    ## 
+    ##  Grubbs test for one outlier
+    ## 
+    ## data:  anaerobe_pca_data$log_gltA
+    ## G = 2.10287, U = 0.89477, p-value = 0.6972
+    ## alternative hypothesis: lowest value 14.7026509447478 is an outlier
+
+``` r
+grubbs.test(anaerobe_pca_data$log_mcrA) 
+```
+
+    ## 
+    ##  Grubbs test for one outlier
+    ## 
+    ## data:  anaerobe_pca_data$log_mcrA
+    ## G = 2.20249, U = 0.88456, p-value = 0.529
+    ## alternative hypothesis: highest value 13.5884040326152 is an outlier
+
+``` r
+grubbs.test(anaerobe_pca_data$sqrt_nirK) #there is an outlier (WO-UN-U-2)
+```
+
+    ## 
+    ##  Grubbs test for one outlier
+    ## 
+    ## data:  anaerobe_pca_data$sqrt_nirK
+    ## G = 1.79736, U = 0.92313, p-value = 1
+    ## alternative hypothesis: highest value 10194.1244225821 is an outlier
+
+``` r
+grubbs.test(anaerobe_pca_data$log_nirS) #there is an outlier (SM-NT-U-1)
+```
+
+    ## 
+    ##  Grubbs test for one outlier
+    ## 
+    ## data:  anaerobe_pca_data$log_nirS
+    ## G = 2.0945, U = 0.8956, p-value = 0.713
+    ## alternative hypothesis: highest value 16.7114978417475 is an outlier
+
+## Perform PCA
+
+``` r
+pca_anaerobes <- 
+  prcomp(
+    ~log_dsrAB + log_gltA + log_mcrA + sqrt_nirK + log_nirS, 
+    data = anaerobe_pca_data, 
+    scale = TRUE
+  )
+```
+
+### Plot - Supplementary Figure S2
+
+``` r
+autoplot(
+  pca_anaerobes,
+  loadings = TRUE,
+  loadings.label = TRUE,
+) +
+  scale_x_reverse() + 
+  theme_bw() + 
+  theme(
+    aspect.ratio = 1,
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14)
+  )
+```
+
+![](ddPCR_files/figure-gfm/unnamed-chunk-113-1.png)<!-- -->
+
+### Save PC1 values
+
+NOTE: anaerobes_by_pca was saved as a csv: `anaerobe_pca.csv`
+
+``` r
+pc1_values <- pca_anaerobes$x %>% as_tibble() %>%  pull(PC1)
+
+
+anaerobes_by_pca <- 
+  anaerobe_pca_data %>% 
+  add_column(pc1_values) %>% 
+  mutate(
+    pc1_values_trans = 1 * pc1_values
+  )
+```
+
+# PC1 vs. tillage
+
+## Supplementary Figure S3
+
+``` r
+anaerobes_by_pca %>% 
+  group_by(site, till, landscape_position, amend) %>% 
+  summarise(
+    avg_pc1 = mean(pc1_values_trans, na.rm = TRUE),
+    se_pc1 = sd(pc1_values_trans, na.rm = TRUE) / sqrt(n()),
   ) %>% 
-  left_join(errors, by = c("site", "till", "amend", "landscape_position")) %>% 
-  ggplot(aes(x = amend, fill = target_gene)) + 
-  geom_col(aes(y = avg_copies_per_g), position = "stack", color = "black") +
-  geom_errorbar(
-    aes(y = sum_copies, ymin = sum_copies, ymax = sum_copies + sum_se)
+  filter(site != "GR", till != "MT", amend == "U") %>%
+  ggplot() +
+  geom_pointrange(
+    aes(
+      x = till, 
+      y = avg_pc1, 
+      ymin = avg_pc1 - se_pc1, 
+      ymax = avg_pc1 + se_pc1,
+    )
+  ) + 
+  scale_y_reverse() +
+  expand_limits(y = -3.5) +
+  facet_grid(
+    cols = vars(site), 
+    scales = "free", 
+    labeller = labeller(site = site_labels)
+  ) + 
+  my_theme() + 
+  theme(
+    aspect.ratio = 1.5
   ) +
-  scale_fill_brewer(palette = "RdYlBu") +
-  scale_y_continuous(labels = scientific) +
+  labs(
+    y = "PC1 - Anaerobe Abundances",
+    x = NULL
+  )
+```
+
+    ## `summarise()` has grouped output by 'site', 'till', 'landscape_position'. You
+    ## can override using the `.groups` argument.
+
+![](ddPCR_files/figure-gfm/unnamed-chunk-115-1.png)<!-- -->
+
+## Statistics - values reported in Supplementary Table S2
+
+*Normality*
+
+``` r
+anaerobes_by_pca %>% 
+  group_by(site, till, amend) %>% 
+  mutate(
+    count = n()
+  ) %>% 
+  filter(count > 2) %>% 
+  summarise(
+    normality_p = shapiro.test(pc1_values_trans)$p.value
+  ) %>%
+  arrange(normality_p)
+```
+
+    ## `summarise()` has grouped output by 'site', 'till'. You can override using the
+    ## `.groups` argument.
+
+    ## # A tibble: 11 × 4
+    ## # Groups:   site, till [10]
+    ##    site  till  amend normality_p
+    ##    <chr> <chr> <chr>       <dbl>
+    ##  1 CREC  UN    U           0.108
+    ##  2 CREC  NT    U           0.178
+    ##  3 WO    CT    U           0.262
+    ##  4 SM    NT    A           0.396
+    ##  5 GR    NT    U           0.415
+    ##  6 SM    UN    U           0.421
+    ##  7 SM    CT    A           0.544
+    ##  8 CREC  MT    U           0.564
+    ##  9 CREC  NT    A           0.581
+    ## 10 WO    NT    U           0.639
+    ## 11 CREC  CT    U           0.869
+
+All groups w/ more than 3 observations are normally distributed.
+
+*Variances*
+
+``` r
+bartlett.test(
+   pc1_values_trans ~ interaction(till, site),
+  data = 
+    anaerobes_by_pca %>% 
+    filter(site != "GR", till != "MT", amend == "U") 
+  
+)
+```
+
+    ## 
+    ##  Bartlett test of homogeneity of variances
+    ## 
+    ## data:  pc1_values_trans by interaction(till, site)
+    ## Bartlett's K-squared = 6.6865, df = 8, p-value = 0.5708
+
+### CREC
+
+``` r
+crec_pc_anaerobe_aov <- 
+  aov(
+      pc1_values_trans ~ till,
+      data = 
+        anaerobes_by_pca %>% 
+        filter(site == "CREC", amend == "U", till != "MT") 
+)
+
+crec_pc_anaerobe_aov %>% summary()
+```
+
+    ##             Df Sum Sq Mean Sq F value Pr(>F)  
+    ## till         2 12.426   6.213   7.019 0.0268 *
+    ## Residuals    6  5.311   0.885                 
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` r
+TukeyHSD(crec_pc_anaerobe_aov)
+```
+
+    ##   Tukey multiple comparisons of means
+    ##     95% family-wise confidence level
+    ## 
+    ## Fit: aov(formula = pc1_values_trans ~ till, data = anaerobes_by_pca %>% filter(site == "CREC", amend == "U", till != "MT"))
+    ## 
+    ## $till
+    ##              diff       lwr        upr     p adj
+    ## NT-CT -0.01646521 -2.373410  2.3404798 0.9997467
+    ## UN-CT -2.50079717 -4.857742 -0.1438521 0.0397810
+    ## UN-NT -2.48433196 -4.841277 -0.1273869 0.0408275
+
+### SM
+
+``` r
+sm_pc_anaerobe_aov <- 
+  aov(
+      pc1_values_trans ~ till,
+      data = 
+        anaerobes_by_pca %>% 
+        filter(site == "SM", amend == "U", till != "MT") 
+)
+
+sm_pc_anaerobe_aov %>% summary()
+```
+
+    ##             Df Sum Sq Mean Sq F value Pr(>F)
+    ## till         2  5.951  2.9757   4.004  0.111
+    ## Residuals    4  2.973  0.7432
+
+### WO
+
+``` r
+wo_pc_anaerobe_aov <- 
+  aov(
+      pc1_values_trans ~ till,
+      data = 
+        anaerobes_by_pca %>% 
+        filter(site == "WO", amend == "U", till != "MT") 
+)
+
+wo_pc_anaerobe_aov %>% summary()
+```
+
+    ##             Df Sum Sq Mean Sq F value Pr(>F)  
+    ## till         2  5.443  2.7216   8.295 0.0258 *
+    ## Residuals    5  1.641  0.3281                 
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` r
+TukeyHSD(wo_pc_anaerobe_aov)
+```
+
+    ##   Tukey multiple comparisons of means
+    ##     95% family-wise confidence level
+    ## 
+    ## Fit: aov(formula = pc1_values_trans ~ till, data = anaerobes_by_pca %>% filter(site == "WO", amend == "U", till != "MT"))
+    ## 
+    ## $till
+    ##             diff       lwr         upr     p adj
+    ## NT-CT -1.5028178 -3.024664  0.01902878 0.0522311
+    ## UN-CT -1.9220453 -3.623522 -0.22056907 0.0322133
+    ## UN-NT -0.4192275 -2.120704  1.28224875 0.7182773
+
+# PC1 Anaerobe Abundances vs. manure amendments
+
+## Supplementary Figure S4
+
+``` r
+anaerobes_by_pca %>% 
+  group_by(site, till, amend, landscape_position) %>% 
+  summarise(
+    avg_pc = mean(pc1_values_trans, na.rm = TRUE),
+    se_pc = sd(pc1_values_trans, na.rm = TRUE) / sqrt(n()),
+  ) %>% 
+  filter(site == "CREC", till %in% c("CT", "NT")) %>% 
+  ggplot(aes(x = amend)) + 
+  geom_pointrange(aes(ymin = avg_pc - se_pc, ymax = avg_pc + se_pc, y = avg_pc)) +
+  scale_y_reverse() +
+  expand_limits(y = -2.5) +
   facet_grid(
     cols = vars(till), 
     scales = "free", 
@@ -3993,850 +3472,94 @@ all_ddpcr_data %>%
   theme_bw() + 
   my_theme() +
   theme(
-    aspect.ratio = 4
+    aspect.ratio = 1.5
   ) +
   labs(
-    y = "Copies per g soil",
+    y = "PC1 - Anaerobe Abundances",
     x = NULL
   )
 ```
 
-![](ddPCR_files/figure-gfm/unnamed-chunk-128-1.png)<!-- -->
+    ## `summarise()` has grouped output by 'site', 'till', 'amend'. You can override
+    ## using the `.groups` argument.
 
-### Statistics
+    ## Warning: Removed 1 rows containing missing values (`geom_segment()`).
 
-#### Check normality
+![](ddPCR_files/figure-gfm/unnamed-chunk-121-1.png)<!-- -->
+
+## Statistics - Reported in Supplementary Table S3
+
+### CT
+
+Not enough PC1 observations for CT-A to perform t-test.
+
+### NT
+
+*Check normality*
+
+Data is normal.
 
 ``` r
-total_anaerobe %>% 
-  filter(site == "SM") %>% 
-  group_by(site, till, amend) %>% 
+anaerobes_by_pca %>% 
+  filter(site == "CREC", till == "NT") %>% 
+  group_by(site, till, amend) %>%
   summarise(
-    normality_p = shapiro.test(anaerobe_copies_per_g)$p.value
+    normality_p = shapiro.test(pc1_values)$p.value
   ) %>% 
   arrange(normality_p)
 ```
 
-    ## # A tibble: 5 × 4
-    ## # Groups:   site, till [3]
+    ## # A tibble: 2 × 4
+    ## # Groups:   site, till [1]
     ##   site  till  amend normality_p
     ##   <chr> <chr> <chr>       <dbl>
-    ## 1 SM    NT    A          0.0139
-    ## 2 SM    CT    A          0.108 
-    ## 3 SM    UN    U          0.423 
-    ## 4 SM    CT    U          0.588 
-    ## 5 SM    NT    U          0.804
+    ## 1 CREC  NT    U           0.178
+    ## 2 CREC  NT    A           0.581
 
-SM-NT-A is non-normal, non-amenable to transformations
-
-#### Test for equal variances
+*Test for equal variances*
 
 ``` r
-leveneTest(
-  anaerobe_copies_per_g~amend*till,
-  data = total_anaerobe %>% filter(site == "SM", till %in% c("CT", "NT"))
+bartlett.test( 
+  pc1_values ~ amend,
+  data = 
+      anaerobes_by_pca %>% 
+    filter(site == "CREC", till == "NT")
 )
 ```
 
-    ## Levene's Test for Homogeneity of Variance (center = median)
-    ##       Df F value Pr(>F)
-    ## group  3  0.5167 0.6823
-    ##        8
+    ## 
+    ##  Bartlett test of homogeneity of variances
+    ## 
+    ## data:  pc1_values by amend
+    ## Bartlett's K-squared = 0.083129, df = 1, p-value = 0.7731
 
-Equal variances
+Variances are equal.
 
-#### test for differences in amended vs. unamended soils
-
-Will use t-test for differences between amended and unamended
-
-**CT**
+*t-test*
 
 ``` r
 t.test(
   x = 
-    total_anaerobe %>% 
-    filter(site == "SM", till == "CT", amend == "A") %>% 
-    pull(anaerobe_copies_per_g),
+    anaerobes_by_pca %>% 
+    filter(site == "CREC", till == "NT", amend == "A") %>% 
+    pull(pc1_values),
   y = 
-    total_anaerobe %>% 
-    filter(site == "SM", till == "CT", amend == "U") %>% 
-    pull(anaerobe_copies_per_g),
-  alternative = c("greater"),
-  var.equal = TRUE
+    anaerobes_by_pca %>% 
+    filter(site == "CREC", till == "NT", amend == "U") %>% 
+    pull(pc1_values),
+  var.equal = TRUE,
+  alternative = c("less") #more negative = more anaerobes
 )
 ```
 
     ## 
     ##  Two Sample t-test
     ## 
-    ## data:  total_anaerobe %>% filter(site == "SM", till == "CT", amend == "A") %>% pull(anaerobe_copies_per_g) and total_anaerobe %>% filter(site == "SM", till == "CT", amend == "U") %>% pull(anaerobe_copies_per_g)
-    ## t = 1.3637, df = 4, p-value = 0.1222
-    ## alternative hypothesis: true difference in means is greater than 0
+    ## data:  anaerobes_by_pca %>% filter(site == "CREC", till == "NT", amend == "A") %>% pull(pc1_values) and anaerobes_by_pca %>% filter(site == "CREC", till == "NT", amend == "U") %>% pull(pc1_values)
+    ## t = -3.9017, df = 4, p-value = 0.008758
+    ## alternative hypothesis: true difference in means is less than 0
     ## 95 percent confidence interval:
-    ##  -4055119      Inf
+    ##       -Inf -1.216749
     ## sample estimates:
     ## mean of x mean of y 
-    ##  20655217  13455668
-
-**NT**
-
-``` r
-wilcox.test(
-  x = 
-    total_anaerobe %>% 
-    filter(site == "SM", till == "NT", amend == "A") %>% 
-    pull(anaerobe_copies_per_g),
-  y = 
-    total_anaerobe %>% 
-    filter(site == "SM", till == "NT", amend == "U") %>% 
-    pull(anaerobe_copies_per_g),
-  alternative = c("greater") #this really depends! 
-)
-```
-
-    ## 
-    ##  Wilcoxon rank sum exact test
-    ## 
-    ## data:  total_anaerobe %>% filter(site == "SM", till == "NT", amend == "A") %>% pull(anaerobe_copies_per_g) and total_anaerobe %>% filter(site == "SM", till == "NT", amend == "U") %>% pull(anaerobe_copies_per_g)
-    ## W = 6, p-value = 0.35
-    ## alternative hypothesis: true location shift is greater than 0
-
-### Figure - faceted
-
-``` r
-all_ddpcr_data %>% 
-  group_by(site, till, amend, landscape_position, target_gene) %>% 
-  summarise(
-    avg_copies_per_g = mean(copies_per_g, na.rm = TRUE),
-    se_copies_per_g = sd(copies_per_g, na.rm = TRUE) / sqrt(n())
-  ) %>% 
-  filter(site == "SM", till %in% c("CT", "NT")) %>% 
-  mutate(
-    across(
-      target_gene, 
-      ~factor(
-        ., 
-        levels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA"),
-        labels = c("nirK", "nirS", "gltA", "dsrAB", "mcrA")
-      )
-    )
-  ) %>% 
-  ggplot(aes(y = avg_copies_per_g, x = amend, fill = target_gene)) + 
-  geom_col(position = "dodge", color = "black") +
-  geom_errorbar(
-    aes(
-      ymin = avg_copies_per_g,
-      ymax = avg_copies_per_g + se_copies_per_g
-    ),
-    position = "dodge"
-  ) +
-  scale_fill_brewer(palette = "RdYlBu") +
-  scale_y_continuous(labels = scientific) +
-  facet_grid(
-    cols = vars(till), 
-    rows = vars(target_gene), 
-    scales = "free",
-    labeller = labeller(site = site_labels)
-  ) + 
-  theme_bw() + 
-  my_theme() +
-  theme(
-    aspect.ratio = 1,
-    legend.position = "none",
-    strip.text.y = element_text(face = "italic")
-  ) +
-  labs(
-    y = "Copies per g soil",
-    x = NULL
-  )
-```
-
-![](ddPCR_files/figure-gfm/unnamed-chunk-133-1.png)<!-- -->
-
-#### Check Normality
-
-**All target genes**
-
-``` r
-all_ddpcr_data %>% 
-  filter(
-    site == "SM", 
-    till %in% c("CT", "NT")
-  ) %>%
-  group_by(site, till, amend, target_gene) %>% 
-  summarise(
-    normality_p = shapiro.test(copies_per_g)$p.value
-  ) %>%
-  arrange(target_gene, normality_p)
-```
-
-    ## # A tibble: 20 × 5
-    ## # Groups:   site, till, amend [4]
-    ##    site  till  amend target_gene normality_p
-    ##    <chr> <chr> <chr> <chr>             <dbl>
-    ##  1 SM    NT    U     dsrAB            0.199 
-    ##  2 SM    NT    A     dsrAB            0.363 
-    ##  3 SM    CT    U     dsrAB            0.707 
-    ##  4 SM    CT    A     dsrAB            0.746 
-    ##  5 SM    CT    U     gltA             0.0574
-    ##  6 SM    NT    U     gltA             0.181 
-    ##  7 SM    NT    A     gltA             0.431 
-    ##  8 SM    CT    A     gltA             0.570 
-    ##  9 SM    NT    U     mcrA             0.103 
-    ## 10 SM    CT    U     mcrA             0.264 
-    ## 11 SM    NT    A     mcrA             0.275 
-    ## 12 SM    CT    A     mcrA             0.788 
-    ## 13 SM    NT    A     nirK             0.201 
-    ## 14 SM    CT    A     nirK             0.224 
-    ## 15 SM    NT    U     nirK             0.280 
-    ## 16 SM    CT    U     nirK             0.637 
-    ## 17 SM    CT    U     nirS             0.0471
-    ## 18 SM    NT    A     nirS             0.388 
-    ## 19 SM    CT    A     nirS             0.570 
-    ## 20 SM    NT    U     nirS             0.732
-
-nirS appears non-normal for SM-CT-U
-
-**nirS**
-
-``` r
-all_ddpcr_data %>% 
-  filter(
-    site == "SM", 
-    till %in% c("CT", "NT"), 
-    target_gene == "nirS"
-  ) %>%
-  group_by(site, till, amend, target_gene) %>% 
-  summarise(
-    normality_p = shapiro.test(log(copies_per_g))$p.value
-  ) %>%
-  arrange(target_gene, normality_p)
-```
-
-    ## # A tibble: 4 × 5
-    ## # Groups:   site, till, amend [4]
-    ##   site  till  amend target_gene normality_p
-    ##   <chr> <chr> <chr> <chr>             <dbl>
-    ## 1 SM    CT    U     nirS              0.110
-    ## 2 SM    NT    U     nirS              0.278
-    ## 3 SM    NT    A     nirS              0.676
-    ## 4 SM    CT    A     nirS              0.686
-
-A log transform helps SM-CT-U nirK meet the assumptions of normality
-
-#### Check for equal variances
-
-``` r
-bartlett.test( 
-  copies_per_g ~ amend,
-  data = 
-    all_ddpcr_data %>% 
-    filter(site == "SM", target_gene == "mcrA", till == "CT")
-) 
-```
-
-    ## 
-    ##  Bartlett test of homogeneity of variances
-    ## 
-    ## data:  copies_per_g by amend
-    ## Bartlett's K-squared = 0.025068, df = 1, p-value = 0.8742
-
-``` r
-bartlett.test( 
-  copies_per_g ~ amend,
-  data = 
-    all_ddpcr_data %>% 
-    filter(site == "SM", target_gene == "mcrA", till == "NT")
-) 
-```
-
-    ## 
-    ##  Bartlett test of homogeneity of variances
-    ## 
-    ## data:  copies_per_g by amend
-    ## Bartlett's K-squared = 0.0016525, df = 1, p-value = 0.9676
-
-``` r
-bartlett.test( 
-  log(copies_per_g) ~ amend,
-  data = 
-    all_ddpcr_data %>% 
-    filter(site == "SM", target_gene == "dsrAB", till == "CT")
-) 
-```
-
-    ## 
-    ##  Bartlett test of homogeneity of variances
-    ## 
-    ## data:  log(copies_per_g) by amend
-    ## Bartlett's K-squared = 5.4977, df = 1, p-value = 0.01904
-
-``` r
-bartlett.test( 
-  log(copies_per_g) ~ amend,
-  data = 
-    all_ddpcr_data %>% 
-    filter(site == "SM", target_gene == "dsrAB", till == "NT")
-) 
-```
-
-    ## 
-    ##  Bartlett test of homogeneity of variances
-    ## 
-    ## data:  log(copies_per_g) by amend
-    ## Bartlett's K-squared = 1.7173, df = 1, p-value = 0.19
-
-``` r
-bartlett.test( 
-  copies_per_g ~ amend,
-  data = 
-    all_ddpcr_data %>% 
-    filter(site == "SM", target_gene == "gltA", till == "CT")
-) 
-```
-
-    ## 
-    ##  Bartlett test of homogeneity of variances
-    ## 
-    ## data:  copies_per_g by amend
-    ## Bartlett's K-squared = 3.314, df = 1, p-value = 0.06869
-
-``` r
-bartlett.test( 
-  copies_per_g ~ amend,
-  data = 
-    all_ddpcr_data %>% 
-    filter(site == "SM", target_gene == "gltA", till == "NT")
-) 
-```
-
-    ## 
-    ##  Bartlett test of homogeneity of variances
-    ## 
-    ## data:  copies_per_g by amend
-    ## Bartlett's K-squared = 0.0089954, df = 1, p-value = 0.9244
-
-``` r
-bartlett.test( 
-  copies_per_g ~ amend,
-  data = 
-    all_ddpcr_data %>% 
-    filter(site == "SM", target_gene == "nirS", till == "CT")
-) 
-```
-
-    ## 
-    ##  Bartlett test of homogeneity of variances
-    ## 
-    ## data:  copies_per_g by amend
-    ## Bartlett's K-squared = 2.1307, df = 1, p-value = 0.1444
-
-``` r
-bartlett.test( 
-  copies_per_g ~ amend,
-  data = 
-    all_ddpcr_data %>% 
-    filter(site == "SM", target_gene == "nirS", till == "NT")
-) 
-```
-
-    ## 
-    ##  Bartlett test of homogeneity of variances
-    ## 
-    ## data:  copies_per_g by amend
-    ## Bartlett's K-squared = 0.084218, df = 1, p-value = 0.7717
-
-``` r
-bartlett.test( 
-  log(copies_per_g) ~ amend,
-  data = 
-    all_ddpcr_data %>% 
-    filter(site == "SM", target_gene == "nirK", till == "CT")
-) 
-```
-
-    ## 
-    ##  Bartlett test of homogeneity of variances
-    ## 
-    ## data:  log(copies_per_g) by amend
-    ## Bartlett's K-squared = 2.9832, df = 1, p-value = 0.08413
-
-``` r
-bartlett.test( 
-  copies_per_g ~ amend,
-  data = 
-    all_ddpcr_data %>% 
-    filter(site == "SM", target_gene == "nirK", till == "NT")
-) 
-```
-
-    ## 
-    ##  Bartlett test of homogeneity of variances
-    ## 
-    ## data:  copies_per_g by amend
-    ## Bartlett's K-squared = 1.1935, df = 1, p-value = 0.2746
-
-Unequal variances: SM-CT dsrAB
-
-#### test for differences
-
-t-tests with equal variances (except in cases outlined above)
-Log-transform SM-CT nirK comparisons
-
-**mcrA**
-
-``` r
-t.test(
-  x = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "CT", 
-      amend == "A", 
-      target_gene == "mcrA"
-    ) %>% 
-    pull(copies_per_g),
-  y = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "CT", 
-      amend == "U",
-      target_gene == "mcrA"
-    ) %>% 
-    pull(copies_per_g),
-  alternative = c("greater"),
-  var.equal = TRUE
-)
-```
-
-    ## 
-    ##  Two Sample t-test
-    ## 
-    ## data:  all_ddpcr_data %>% filter(site == "SM", till == "CT", amend == "A", target_gene == "mcrA") %>% pull(copies_per_g) and all_ddpcr_data %>% filter(site == "SM", till == "CT", amend == "U", target_gene == "mcrA") %>% pull(copies_per_g)
-    ## t = 0.17687, df = 5, p-value = 0.4333
-    ## alternative hypothesis: true difference in means is greater than 0
-    ## 95 percent confidence interval:
-    ##  -57308.58       Inf
-    ## sample estimates:
-    ## mean of x mean of y 
-    ##  40220.23  34706.05
-
-``` r
-t.test(
-  x = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "NT", 
-      amend == "A", 
-      target_gene == "mcrA"
-    ) %>% 
-    pull(copies_per_g),
-  y = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "NT", 
-      amend == "U",
-      target_gene == "mcrA"
-    ) %>% 
-    pull(copies_per_g),
-  alternative = c("two.sided"),
-  var.equal = TRUE
-)
-```
-
-    ## 
-    ##  Two Sample t-test
-    ## 
-    ## data:  all_ddpcr_data %>% filter(site == "SM", till == "NT", amend == "A", target_gene == "mcrA") %>% pull(copies_per_g) and all_ddpcr_data %>% filter(site == "SM", till == "NT", amend == "U", target_gene == "mcrA") %>% pull(copies_per_g)
-    ## t = -0.12716, df = 6, p-value = 0.903
-    ## alternative hypothesis: true difference in means is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -41067.32  37009.93
-    ## sample estimates:
-    ## mean of x mean of y 
-    ##  17585.62  19614.32
-
-**dsrAB**
-
-``` r
-t.test(
-  x = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "CT", 
-      amend == "A", 
-      target_gene == "dsrAB"
-    ) %>% 
-    pull(copies_per_g) %>% log(),
-  y = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "CT", 
-      amend == "U",
-      target_gene == "dsrAB"
-    ) %>% 
-    pull(copies_per_g) %>% log(),
-  alternative = c("two.sided"),
-  var.equal = FALSE
-)
-```
-
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  all_ddpcr_data %>% filter(site == "SM", till == "CT", amend == "A", target_gene == "dsrAB") %>% pull(copies_per_g) %>% log() and all_ddpcr_data %>% filter(site == "SM", till == "CT", amend == "U", target_gene == "dsrAB") %>% pull(copies_per_g) %>% log()
-    ## t = 0.48723, df = 3.081, p-value = 0.6587
-    ## alternative hypothesis: true difference in means is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -0.889019  1.216125
-    ## sample estimates:
-    ## mean of x mean of y 
-    ##  15.45731  15.29375
-
-``` r
-t.test(
-  x = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "NT", 
-      amend == "A", 
-      target_gene == "dsrAB"
-    ) %>% 
-    pull(copies_per_g),
-  y = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "NT", 
-      amend == "U",
-      target_gene == "dsrAB"
-    ) %>% 
-    pull(copies_per_g),
-  alternative = c("two.sided"),
-  var.equal = TRUE
-)
-```
-
-    ## 
-    ##  Two Sample t-test
-    ## 
-    ## data:  all_ddpcr_data %>% filter(site == "SM", till == "NT", amend == "A", target_gene == "dsrAB") %>% pull(copies_per_g) and all_ddpcr_data %>% filter(site == "SM", till == "NT", amend == "U", target_gene == "dsrAB") %>% pull(copies_per_g)
-    ## t = 0.72878, df = 4, p-value = 0.5065
-    ## alternative hypothesis: true difference in means is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -6109084 10457654
-    ## sample estimates:
-    ## mean of x mean of y 
-    ##   6982550   4808265
-
-**gltA**
-
-``` r
-t.test(
-  x = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "CT", 
-      amend == "A", 
-      target_gene == "dsrAB"
-    ) %>% 
-    pull(copies_per_g),
-  y = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "CT", 
-      amend == "U",
-      target_gene == "gltA"
-    ) %>% 
-    pull(copies_per_g),
-  alternative = c("two.sided"),
-  var.equal = FALSE
-)
-```
-
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  all_ddpcr_data %>% filter(site == "SM", till == "CT", amend == "A", target_gene == "dsrAB") %>% pull(copies_per_g) and all_ddpcr_data %>% filter(site == "SM", till == "CT", amend == "U", target_gene == "gltA") %>% pull(copies_per_g)
-    ## t = 0.66601, df = 3.0629, p-value = 0.5521
-    ## alternative hypothesis: true difference in means is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -4908633  7545310
-    ## sample estimates:
-    ## mean of x mean of y 
-    ##   5172249   3853910
-
-``` r
-t.test(
-  x = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "NT", 
-      amend == "A", 
-      target_gene == "gltA"
-    ) %>% 
-    pull(copies_per_g),
-  y = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "NT", 
-      amend == "U",
-      target_gene == "dsrAB"
-    ) %>% 
-    pull(copies_per_g),
-  alternative = c("two.sided"),
-  var.equal = TRUE
-)
-```
-
-    ## 
-    ##  Two Sample t-test
-    ## 
-    ## data:  all_ddpcr_data %>% filter(site == "SM", till == "NT", amend == "A", target_gene == "gltA") %>% pull(copies_per_g) and all_ddpcr_data %>% filter(site == "SM", till == "NT", amend == "U", target_gene == "dsrAB") %>% pull(copies_per_g)
-    ## t = 0.79592, df = 5, p-value = 0.4622
-    ## alternative hypothesis: true difference in means is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -3605420  6839440
-    ## sample estimates:
-    ## mean of x mean of y 
-    ##   6425275   4808265
-
-**nirS**
-
-``` r
-t.test(
-  x = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "CT", 
-      amend == "A", 
-      target_gene == "nirS"
-    ) %>% 
-    pull(copies_per_g),
-  y = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "CT", 
-      amend == "U",
-      target_gene == "nirS"
-    ) %>% 
-    pull(copies_per_g),
-  alternative = c("two.sided"),
-  var.equal = TRUE
-)
-```
-
-    ## 
-    ##  Two Sample t-test
-    ## 
-    ## data:  all_ddpcr_data %>% filter(site == "SM", till == "CT", amend == "A", target_gene == "nirS") %>% pull(copies_per_g) and all_ddpcr_data %>% filter(site == "SM", till == "CT", amend == "U", target_gene == "nirS") %>% pull(copies_per_g)
-    ## t = 3.3911, df = 5, p-value = 0.01944
-    ## alternative hypothesis: true difference in means is not equal to 0
-    ## 95 percent confidence interval:
-    ##   686350.2 4987081.7
-    ## sample estimates:
-    ## mean of x mean of y 
-    ##   4528625   1691909
-
-``` r
-t.test(
-  x = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "NT", 
-      amend == "A", 
-      target_gene == "nirS"
-    ) %>% 
-    pull(copies_per_g),
-  y = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "NT", 
-      amend == "U",
-      target_gene == "nirS"
-    ) %>% 
-    pull(copies_per_g),
-  alternative = c("two.sided"),
-  var.equal = TRUE
-)
-```
-
-    ## 
-    ##  Two Sample t-test
-    ## 
-    ## data:  all_ddpcr_data %>% filter(site == "SM", till == "NT", amend == "A", target_gene == "nirS") %>% pull(copies_per_g) and all_ddpcr_data %>% filter(site == "SM", till == "NT", amend == "U", target_gene == "nirS") %>% pull(copies_per_g)
-    ## t = 0.2996, df = 4, p-value = 0.7794
-    ## alternative hypothesis: true difference in means is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -4320666  5365943
-    ## sample estimates:
-    ## mean of x mean of y 
-    ##   2684188   2161550
-
-**nirK**
-
-``` r
-t.test(
-  x = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "CT", 
-      amend == "A", 
-      target_gene == "nirK"
-    ) %>% 
-    mutate(
-      log_copies_per_g = log(copies_per_g)
-    ) %>% 
-    pull(log_copies_per_g),
-  y = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "CT", 
-      amend == "U",
-      target_gene == "nirS"
-    ) %>% 
-    mutate(
-      log_copies_per_g = log(copies_per_g)
-    ) %>% 
-    pull(log_copies_per_g),
-  alternative = c("two.sided"),
-  var.equal = TRUE
-)
-```
-
-    ## 
-    ##  Two Sample t-test
-    ## 
-    ## data:  all_ddpcr_data %>% filter(site == "SM", till == "CT", amend == "A", target_gene == "nirK") %>% mutate(log_copies_per_g = log(copies_per_g)) %>% pull(log_copies_per_g) and all_ddpcr_data %>% filter(site == "SM", till == "CT", amend == "U", target_gene == "nirS") %>% mutate(log_copies_per_g = log(copies_per_g)) %>% pull(log_copies_per_g)
-    ## t = 1.7196, df = 4, p-value = 0.1606
-    ## alternative hypothesis: true difference in means is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -0.5760887  2.4508229
-    ## sample estimates:
-    ## mean of x mean of y 
-    ##  15.00050  14.06313
-
-``` r
-t.test(
-  x = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "NT", 
-      amend == "A", 
-      target_gene == "nirK"
-    ) %>% 
-    pull(copies_per_g),
-  y = 
-    all_ddpcr_data %>% 
-    filter(
-      site == "SM", 
-      till == "NT", 
-      amend == "U",
-      target_gene == "nirK"
-    ) %>% 
-    pull(copies_per_g),
-  alternative = c("two.sided"),
-  var.equal = TRUE
-)
-```
-
-    ## 
-    ##  Two Sample t-test
-    ## 
-    ## data:  all_ddpcr_data %>% filter(site == "SM", till == "NT", amend == "A", target_gene == "nirK") %>% pull(copies_per_g) and all_ddpcr_data %>% filter(site == "SM", till == "NT", amend == "U", target_gene == "nirK") %>% pull(copies_per_g)
-    ## t = 0.78655, df = 5, p-value = 0.4672
-    ## alternative hypothesis: true difference in means is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -2626726  4942870
-    ## sample estimates:
-    ## mean of x mean of y 
-    ##   3287969   2129897
-
-# Relative Abundance (total anaerobe / 16S copies)
-
-## Unamended, effect of tillage across sites
-
-``` r
-prop_anaerobe <-
-  all_ddpcr_data %>% 
-  group_by(site, till, amend, landscape_position, target_gene) %>% 
-  summarise(
-    avg_prop = mean(prop, na.rm = TRUE),
-    se_prop = sd(prop, na.rm = TRUE) / sqrt(n()),
-    avg_perc = avg_prop * 100
-  ) 
-```
-
-Lowest relative abundance
-
-``` r
-prop_anaerobe %>% 
-  arrange(avg_perc)
-```
-
-    ## # A tibble: 85 × 8
-    ## # Groups:   site, till, amend, landscape_position [17]
-    ##    site  till  amend landscape_position target_gene  avg_prop    se_prop avg_p…¹
-    ##    <chr> <chr> <chr> <chr>              <chr>           <dbl>      <dbl>   <dbl>
-    ##  1 SM    NT    A     <NA>               mcrA        0.0000236 0.0000204  0.00236
-    ##  2 GR    NT    U     F                  mcrA        0.0000352 0.00000714 0.00352
-    ##  3 CREC  CT    U     <NA>               mcrA        0.0000381 0.0000143  0.00381
-    ##  4 CREC  UN    U     <NA>               mcrA        0.0000398 0.0000120  0.00398
-    ##  5 CREC  NT    U     <NA>               mcrA        0.0000482 0.00000818 0.00482
-    ##  6 SM    NT    U     <NA>               mcrA        0.0000508 0.0000296  0.00508
-    ##  7 CREC  MT    U     <NA>               mcrA        0.0000631 0.0000199  0.00631
-    ##  8 SM    CT    U     <NA>               mcrA        0.000108  0.0000622  0.0108 
-    ##  9 WO    UN    U     <NA>               mcrA        0.000118  0.0000456  0.0118 
-    ## 10 SM    CT    A     <NA>               mcrA        0.000121  0.0000661  0.0121 
-    ## # … with 75 more rows, and abbreviated variable name ¹​avg_perc
-
-``` r
-prop_anaerobe %>% 
-  ggplot(aes(x = avg_perc, fill = target_gene)) + 
-  geom_density() +
-  facet_wrap(facets = vars(target_gene), scales = "free") + 
-  labs(
-    x = "target gene abundance normalized to 16S (%)"
-  )
-```
-
-![](ddPCR_files/figure-gfm/unnamed-chunk-143-1.png)<!-- -->
-
-Highest relative abundance targets
-
-``` r
-prop_anaerobe %>% arrange(-avg_perc)
-```
-
-    ## # A tibble: 85 × 8
-    ## # Groups:   site, till, amend, landscape_position [17]
-    ##    site  till  amend landscape_position target_gene avg_prop se_prop avg_perc
-    ##    <chr> <chr> <chr> <chr>              <chr>          <dbl>   <dbl>    <dbl>
-    ##  1 WO    NT    U     <NA>               nirK          0.0934 0.00753     9.34
-    ##  2 WO    CT    U     <NA>               nirK          0.0826 0.0155      8.26
-    ##  3 SM    UN    U     <NA>               nirK          0.0739 0.0121      7.39
-    ##  4 GR    NT    U     C                  nirK          0.0624 0.0133      6.24
-    ##  5 GR    NT    U     F                  nirK          0.0554 0.0109      5.54
-    ##  6 WO    UN    U     <NA>               nirK          0.0515 0.00684     5.15
-    ##  7 CREC  NT    A     <NA>               nirK          0.0466 0.0163      4.66
-    ##  8 WO    NT    U     <NA>               gltA          0.0463 0.00663     4.63
-    ##  9 GR    NT    U     S                  nirK          0.0450 0.0104      4.50
-    ## 10 CREC  NT    U     <NA>               nirK          0.0407 0.00911     4.07
-    ## # … with 75 more rows
+    ## -1.664279  1.018071
